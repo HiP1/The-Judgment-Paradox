@@ -1,0 +1,43 @@
+cff-version: 1.2.0
+title: "The Judgment Paradox: Disagreement Valuation, Annotation Pipelines, and the Case for Preservation"
+message: "If you use or reference this work, please cite it as below."
+type: article
+authors:
+  - family-names: Phan
+    given-names: Ivan
+    orcid: "https://orcid.org/0009-0003-1095-5855"
+    affiliation: "Independent Researcher"
+date-released: "2026-04-15"
+year: 2026
+license: CC-BY-4.0
+doi: "10.5281/zenodo.19594378"
+url: "https://hip1.github.io/the-judgment-paradox/"
+repository: "https://github.com/HiP1/the-judgment-paradox"
+keywords:
+  - RLHF
+  - RLHD
+  - annotation
+  - signal enrichment
+  - disagreement preservation
+  - soft labels
+  - reward model
+  - epistemic calibration
+  - expert annotation
+  - Rich Annotation Object
+  - supervised fine-tuning
+  - synthetic data
+  - DPO
+  - cross-review
+abstract: >-
+  Current annotation pipelines for reinforcement learning from human feedback
+  (RLHF) and related training methods systematically destroy valuable
+  information by collapsing expert disagreement into single consensus labels.
+  This paper proposes a redesigned annotation pipeline that preserves raw
+  annotator judgments, captures reasoning metadata, structures the full
+  distribution of expert judgment as a training signal, and returns professional
+  value to the annotators themselves. The concrete deliverable is the Rich
+  Annotation Object (RAO). The paper identifies RL optimisation as structurally
+  hostile to calibrated uncertainty on contested items and recommends supervised
+  fine-tuning (SFT) as the primary integration path. Seven testable predictions
+  with named falsifiers are derived from established cognitive science findings.
+  The pipeline is not empirically tested; a pilot study design is proposed.
