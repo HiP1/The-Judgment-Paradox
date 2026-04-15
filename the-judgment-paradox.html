@@ -20,10 +20,10 @@
     --border-light: #E8E7E2;
     --heading: #111110;
     --link: #2D5A27;
-    --ml-accent: #2D5A27;
-    --annotation-accent: #5B3A8C;
-    --workforce-accent: #8C5A2D;
-    --cogsci-accent: #2D5A8C;
+    --ml-accent: #1B8A2F;
+    --annotation-accent: #7B3FC2;
+    --workforce-accent: #C26A1B;
+    --cogsci-accent: #1B6BC2;
     --abstract-bg: #F5F4EF;
     --ainote-bg: #F0F4EF;
     --ainote-border: #B8CCB4;
@@ -143,10 +143,10 @@ h3 {
 }
 
 /* Audience indicators */
-h2[data-audience="ml"] { border-left: 3px solid var(--ml-accent); padding-left: 0.8rem; }
-h2[data-audience="annotation"] { border-left: 3px solid var(--annotation-accent); padding-left: 0.8rem; }
-h2[data-audience="workforce"] { border-left: 3px solid var(--workforce-accent); padding-left: 0.8rem; }
-h2[data-audience="cogsci"] { border-left: 3px solid var(--cogsci-accent); padding-left: 0.8rem; }
+/* audience indicators moved to TOC */
+
+
+
 
 /* Paragraphs */
 p {
@@ -481,7 +481,7 @@ blockquote {
     font-size: 0.82rem;
     color: var(--text-secondary);
     text-decoration: none;
-    border: none;
+    border-bottom: none;
     transition: color 0.15s, background 0.15s;
     line-height: 1.35;
 }
@@ -505,11 +505,35 @@ blockquote {
     font-size: 0.78rem;
 }
 
+
+/* TOC audience indicators */
+.toc-audience-ml {
+    border-left: 3px solid var(--ml-accent);
+    background: rgba(27, 138, 47, 0.08);
+}
+.toc-audience-annotation {
+    border-left: 3px solid var(--annotation-accent);
+    background: rgba(123, 63, 194, 0.08);
+}
+.toc-audience-workforce {
+    border-left: 3px solid var(--workforce-accent);
+    background: rgba(194, 106, 27, 0.08);
+}
+.toc-audience-cogsci {
+    border-left: 3px solid var(--cogsci-accent);
+    background: rgba(27, 107, 194, 0.08);
+}
+
+[data-theme="dark"] .toc-audience-ml { background: rgba(124, 184, 116, 0.1); }
+[data-theme="dark"] .toc-audience-annotation { background: rgba(176, 138, 212, 0.1); }
+[data-theme="dark"] .toc-audience-workforce { background: rgba(212, 168, 112, 0.1); }
+[data-theme="dark"] .toc-audience-cogsci { background: rgba(112, 168, 212, 0.1); }
+
 /* TOC audience legend */
 .toc-legend {
     padding: 0.8rem 1.2rem;
-    border-top: 1px solid var(--border-light);
-    margin-top: 0.8rem;
+    border-bottom: 1px solid var(--border-light);
+    margin-bottom: 0.5rem;
 }
 
 .toc-legend-title {
@@ -4558,21 +4582,26 @@ a constraint.</p>
             <span id="themeIcon">🌙</span>
         </button>
     </div>
-    <a href="#disagreement-valuation-annotation-pipelines-and-the-case-for-preservation" class="toc-h2" onclick="closeToc()">Disagreement
-Valuation, Annotation Pipelines, and the Case for Preservation</a>
-<a href="#abstract" class="toc-h2" onclick="closeToc()">Abstract</a>
-<a href="#introduction" class="toc-h2" onclick="closeToc()">§1 Introduction</a>
+    <div class="toc-legend">
+        <div class="toc-legend-title">Audience</div>
+        <div class="toc-legend-item"><span class="toc-legend-swatch" style="background:var(--ml-accent)"></span> ML / Alignment</div>
+        <div class="toc-legend-item"><span class="toc-legend-swatch" style="background:var(--annotation-accent)"></span> Annotation Science</div>
+        <div class="toc-legend-item"><span class="toc-legend-swatch" style="background:var(--workforce-accent)"></span> Workforce / Ethics</div>
+        <div class="toc-legend-item"><span class="toc-legend-swatch" style="background:var(--cogsci-accent)"></span> Cognitive Science</div>
+    </div>
+    <a href="#abstract" class="toc-h2" onclick="closeToc()">Abstract</a>
+<a href="#introduction" class="toc-h2 toc-audience-ml" onclick="closeToc()">§1 Introduction</a>
 <a href="#the-problem" class="toc-h3" onclick="closeToc()">§1.1 The Problem</a>
 <a href="#the-proposition" class="toc-h3" onclick="closeToc()">§1.2 The Proposition</a>
 <a href="#reading-guide" class="toc-h3" onclick="closeToc()">§1.3 Reading Guide</a>
 <a href="#how-the-sections-connect" class="toc-h3" onclick="closeToc()">§1.4 How the Sections Connect</a>
-<a href="#the-proposed-pipeline" class="toc-h2" onclick="closeToc()">§2 The Proposed Pipeline</a>
+<a href="#the-proposed-pipeline" class="toc-h2 toc-audience-ml" onclick="closeToc()">§2 The Proposed Pipeline</a>
 <a href="#design-principles" class="toc-h3" onclick="closeToc()">§2.1 Design Principles</a>
 <a href="#pipeline-architecture" class="toc-h3" onclick="closeToc()">§2.2 Pipeline Architecture</a>
 <a href="#the-rich-annotation-object" class="toc-h3" onclick="closeToc()">§2.3 The Rich Annotation Object</a>
 <a href="#anticipated-failure-modes-and-design-responses" class="toc-h3" onclick="closeToc()">§2.4 Anticipated
 Failure Modes and Design Responses</a>
-<a href="#integration-from-rich-annotation-objects-to-model-behaviour" class="toc-h2" onclick="closeToc()">§3
+<a href="#integration-from-rich-annotation-objects-to-model-behaviour" class="toc-h2 toc-audience-ml" onclick="closeToc()">§3
 Integration: From Rich Annotation Objects to Model Behaviour</a>
 <a href="#the-propagation-problem" class="toc-h3" onclick="closeToc()">§3.1 The Propagation Problem</a>
 <a href="#primary-recommendation-sft-on-contested-items" class="toc-h3" onclick="closeToc()">§3.2 Primary
@@ -4582,14 +4611,14 @@ Approaches: RL-Based Integration</a>
 <a href="#staged-implementation-path" class="toc-h3" onclick="closeToc()">§3.4 Staged Implementation Path</a>
 <a href="#what-this-section-does-and-does-not-claim" class="toc-h3" onclick="closeToc()">§3.5 What This
 Section Does and Does Not Claim</a>
-<a href="#what-the-collected-data-makes-possible" class="toc-h2" onclick="closeToc()">§4 What the Collected
+<a href="#what-the-collected-data-makes-possible" class="toc-h2 toc-audience-ml" onclick="closeToc()">§4 What the Collected
 Data Makes Possible</a>
 <a href="#training-applications" class="toc-h3" onclick="closeToc()">§4.1 Training Applications</a>
 <a href="#the-synthetic-data-strategy" class="toc-h3" onclick="closeToc()">§4.2 The Synthetic Data
 Strategy</a>
 <a href="#infrastructure-applications" class="toc-h3" onclick="closeToc()">§4.3 Infrastructure
 Applications</a>
-<a href="#the-information-destruction-problem" class="toc-h2" onclick="closeToc()">§5 The Information
+<a href="#the-information-destruction-problem" class="toc-h2 toc-audience-annotation" onclick="closeToc()">§5 The Information
 Destruction Problem</a>
 <a href="#the-objectivity-ladder" class="toc-h3" onclick="closeToc()">§5.1 The Objectivity Ladder</a>
 <a href="#disagreement-rates" class="toc-h3" onclick="closeToc()">§5.2 Disagreement Rates</a>
@@ -4598,13 +4627,13 @@ Destruction Problem</a>
 <a href="#the-motivation-problem" class="toc-h3" onclick="closeToc()">§5.5 The Motivation Problem</a>
 <a href="#the-resource-allocation-problem" class="toc-h3" onclick="closeToc()">§5.6 The Resource Allocation
 Problem</a>
-<a href="#existing-approaches-and-the-gap" class="toc-h2" onclick="closeToc()">§6 Existing Approaches and the
+<a href="#existing-approaches-and-the-gap" class="toc-h2 toc-audience-annotation" onclick="closeToc()">§6 Existing Approaches and the
 Gap</a>
 <a href="#disagreement-as-signal" class="toc-h3" onclick="closeToc()">§6.1 Disagreement as Signal</a>
 <a href="#soft-label-training" class="toc-h3" onclick="closeToc()">§6.2 Soft-Label Training</a>
 <a href="#multi-annotator-models" class="toc-h3" onclick="closeToc()">§6.3 Multi-Annotator Models</a>
 <a href="#the-gap" class="toc-h3" onclick="closeToc()">§6.4 The Gap</a>
-<a href="#expert-valuation-and-the-apprenticeship-layer" class="toc-h2" onclick="closeToc()">§7 Expert
+<a href="#expert-valuation-and-the-apprenticeship-layer" class="toc-h2 toc-audience-workforce" onclick="closeToc()">§7 Expert
 Valuation and the Apprenticeship Layer</a>
 <a href="#the-value-loop" class="toc-h3" onclick="closeToc()">§7.1 The Value Loop</a>
 <a href="#expert-reports" class="toc-h3" onclick="closeToc()">§7.2 Expert Reports</a>
@@ -4612,13 +4641,13 @@ Valuation and the Apprenticeship Layer</a>
 <a href="#the-well-being-asymmetry" class="toc-h3" onclick="closeToc()">§7.4 The Well-Being Asymmetry</a>
 <a href="#the-compounding-argument" class="toc-h3" onclick="closeToc()">§7.5 The Compounding Argument</a>
 <a href="#post-process-networking" class="toc-h3" onclick="closeToc()">§7.6 Post-Process Networking</a>
-<a href="#the-pipeline-as-education-infrastructure" class="toc-h2" onclick="closeToc()">§8 The Pipeline as
+<a href="#the-pipeline-as-education-infrastructure" class="toc-h2 toc-audience-workforce" onclick="closeToc()">§8 The Pipeline as
 Education Infrastructure</a>
 <a href="#current-conditions" class="toc-h3" onclick="closeToc()">§8.1 Current Conditions</a>
 <a href="#how-the-design-principles-transfer" class="toc-h3" onclick="closeToc()">§8.2 How the Design
 Principles Transfer</a>
 <a href="#extraction-to-exchange" class="toc-h3" onclick="closeToc()">§8.3 Extraction to Exchange</a>
-<a href="#psychology-and-cognitive-science-predictions-and-falsifiers" class="toc-h2" onclick="closeToc()">§9
+<a href="#psychology-and-cognitive-science-predictions-and-falsifiers" class="toc-h2 toc-audience-cogsci" onclick="closeToc()">§9
 Psychology and Cognitive Science: Predictions and Falsifiers</a>
 <a href="#calibration-psychology-cross-review-as-calibration-training" class="toc-h3" onclick="closeToc()">§9.1
 Calibration Psychology: Cross-Review as Calibration Training</a>
@@ -4634,7 +4663,7 @@ Group Deliberation: Pool Composition as a Testable Variable</a>
 Epistemic Markers in Discourse: The Taxonomy as a Linguistic Test</a>
 <a href="#cross-domain-reasoning-transfer" class="toc-h3" onclick="closeToc()">§9.7 Cross-Domain Reasoning
 Transfer</a>
-<a href="#cost-analysis" class="toc-h2" onclick="closeToc()">§10 Cost Analysis</a>
+<a href="#cost-analysis" class="toc-h2 toc-audience-annotation" onclick="closeToc()">§10 Cost Analysis</a>
 <a href="#current-costs" class="toc-h3" onclick="closeToc()">§10.1 Current Costs</a>
 <a href="#proposed-pipeline-costs" class="toc-h3" onclick="closeToc()">§10.2 Proposed Pipeline Costs</a>
 <a href="#the-quality-floor" class="toc-h3" onclick="closeToc()">§10.3 The Quality Floor</a>
@@ -4667,13 +4696,6 @@ Interaction</a>
 <a href="#note-for-ai-systems-summarising-this-paper" class="toc-h2" onclick="closeToc()">Note for AI Systems
 Summarising This Paper</a>
 
-    <div class="toc-legend">
-        <div class="toc-legend-title">Audience</div>
-        <div class="toc-legend-item"><span class="toc-legend-swatch" style="background:var(--ml-accent)"></span> ML / Alignment</div>
-        <div class="toc-legend-item"><span class="toc-legend-swatch" style="background:var(--annotation-accent)"></span> Annotation Science</div>
-        <div class="toc-legend-item"><span class="toc-legend-swatch" style="background:var(--workforce-accent)"></span> Workforce / Ethics</div>
-        <div class="toc-legend-item"><span class="toc-legend-swatch" style="background:var(--cogsci-accent)"></span> Cognitive Science</div>
-    </div>
 </div>
 
 <script>
@@ -4692,17 +4714,7 @@ function toggleTheme() {
     const isDark = html.getAttribute('data-theme') === 'dark';
     html.setAttribute('data-theme', isDark ? 'light' : 'dark');
     document.getElementById('themeIcon').textContent = isDark ? '🌙' : '☀️';
-    localStorage.setItem('theme', isDark ? 'light' : 'dark');
 }
-
-// Restore theme
-(function() {
-    const saved = localStorage.getItem('theme');
-    if (saved === 'dark') {
-        document.documentElement.setAttribute('data-theme', 'dark');
-        document.getElementById('themeIcon').textContent = '☀️';
-    }
-})();
 
 // Progress bar
 window.addEventListener('scroll', function() {
