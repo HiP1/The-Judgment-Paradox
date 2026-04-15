@@ -768,15 +768,15 @@ ratings, reasoning axes, and justifications of every other annotator in
 the pool. Each annotator then reviews each peer’s judgment along two
 dimensions: do they agree with the peer’s reasoning (the logic and
 framework behind the judgment), and do they agree with the peer’s
-verdict (the preference rating itself)? These are separated because they
-carry different information. An annotator who agrees with a peer’s
-reasoning but disagrees with their verdict is saying “your logic is
-sound but I weigh the factors differently.” An annotator who agrees with
-a peer’s verdict but for different reasons is providing robust
-agreement: two independent reasoning paths converging on the same
-conclusion. Written reasoning is required for all reviews. Confidence in
-each peer review is optional but encouraged, capturing the gradient
-between strong disagreement and mild preference.</p>
+verdict (the assessment itself)? These are separated because they carry
+different information. An annotator who agrees with a peer’s reasoning
+but disagrees with their verdict is saying “your logic is sound but I
+weigh the factors differently.” An annotator who agrees with a peer’s
+verdict but for different reasons is providing robust agreement: two
+independent reasoning paths converging on the same conclusion. Written
+reasoning is required for all reviews. Confidence in each peer review is
+optional but encouraged, capturing the gradient between strong
+disagreement and mild preference.</p>
 <p><strong>Phase 3: Metadata Assembly.</strong> Raw Phase 1 ratings are
 preserved without aggregation. Reasoning axes are mapped across the
 pool. Cross-review ratings are preserved with their reasoning.
@@ -982,8 +982,10 @@ binary preference label. The schema:</p>
   &quot;item_id&quot;: &quot;string&quot;,
   &quot;item_created_at&quot;: &quot;ISO 8601 timestamp&quot;,
   &quot;prompt&quot;: &quot;string&quot;,
-  &quot;response_a&quot;: &quot;string&quot;,
-  &quot;response_b&quot;: &quot;string&quot;,
+  &quot;responses&quot;: [
+    { &quot;response_id&quot;: &quot;resp_001&quot;, &quot;content&quot;: &quot;string&quot; },
+    { &quot;response_id&quot;: &quot;resp_002&quot;, &quot;content&quot;: &quot;string&quot; }
+  ],
   &quot;item_source&quot;: &quot;organic | synthetic&quot;,
   &quot;item_provenance&quot;: &quot;string&quot;,
   &quot;source_rao_id&quot;: &quot;string | null&quot;,
@@ -992,7 +994,8 @@ binary preference label. The schema:</p>
     {
       &quot;annotator_id&quot;: &quot;anon_001&quot;,
       &quot;annotated_at&quot;: &quot;ISO 8601 timestamp&quot;,
-      &quot;preference&quot;: &quot;A&quot;,
+      &quot;selected_response_id&quot;: &quot;resp_001 | null&quot;,
+      &quot;assessment&quot;: &quot;string&quot;,
       &quot;confidence&quot;: 0.85,
       &quot;reasoning_axis_primary&quot;: &quot;safety&quot;,
       &quot;reasoning_axis_secondary&quot;: &quot;cultural_sensitivity&quot;,
@@ -1012,7 +1015,7 @@ binary preference label. The schema:</p>
     }
   ],
 
-  &quot;distribution&quot;: { &quot;A&quot;: 0.6, &quot;B&quot;: 0.4 },
+  &quot;distribution&quot;: { &quot;resp_001&quot;: 0.6, &quot;resp_002&quot;: 0.4 },
 
   &quot;disagreement_types&quot;: [
     &quot;framework_driven&quot;,
@@ -1031,6 +1034,20 @@ binary preference label. The schema:</p>
     }
   ]
 }</code></pre>
+<p>The <code>responses</code> array holds one or more model outputs. In
+paired evaluation, it contains two. In single-response evaluation, it
+contains one. In ranked evaluation, it may contain more. The pipeline
+imposes no limit. The <code>selected_response_id</code> field records
+which response the annotator preferred when multiple are present. It is
+null in single-response mode, where the <code>assessment</code> field
+carries the evaluative judgment instead. The <code>distribution</code>
+field keys on response IDs, making it format-agnostic: it represents a
+distribution over two responses, a distribution over five, or a quality
+distribution over a single response (proportion of annotators who rated
+it adequate versus inadequate). The schema adapts to the evaluation
+format. The rest of the object (reasoning axes, cross-review,
+disagreement structure, improvement notes) is identical regardless of
+how many responses the expert evaluated.</p>
 <p>Five structural features of this schema deserve explicit
 attention.</p>
 <p>First, the <code>item_source</code> field marks whether the item is
@@ -1099,13 +1116,14 @@ one annotator simultaneously. The types are tags, not a mutually
 exclusive classification.</p>
 <p><strong>For concreteness,</strong> a worked example. Five
 psychiatrists annotate a model’s response to a user expressing suicidal
-ideation. Three prefer Response A (prioritising immediate safety
-protocols) and two prefer Response B (prioritising therapeutic rapport).
-The three who prefer A cite safety as their primary reasoning axis. One
-of them adds improvement notes: “A correctly escalates the safety
-concern but its tone is too clinical; a real clinician would maintain
-warmth while redirecting to crisis resources.” Of the two who prefer B,
-one cites therapeutic engagement as primary with cultural sensitivity as
+ideation. The item contains two responses. Three prefer Response 1
+(prioritising immediate safety protocols) and two prefer Response 2
+(prioritising therapeutic rapport). The three who prefer Response 1 cite
+safety as their primary reasoning axis. One of them adds improvement
+notes: “Response 1 correctly escalates the safety concern but its tone
+is too clinical; a real clinician would maintain warmth while
+redirecting to crisis resources.” Of the two who prefer Response 2, one
+cites therapeutic engagement as primary with cultural sensitivity as
 secondary, and one cites cultural sensitivity as primary.</p>
 <p>In cross-review, one of the safety-focused annotators reviews a
 rapport-focused peer’s annotation. She agrees with the peer’s reasoning:
@@ -1128,27 +1146,28 @@ item, that the contest is between coherent clinical philosophies, and
 that the appropriate model behaviour is calibrated uncertainty rather
 than confident endorsement of either response.</p>
 <p>Compare this to what the same five annotations produce in a current
-consensus pipeline: “Response A preferred.” The framework-level
+consensus pipeline: “Response 1 preferred.” The framework-level
 disagreement, the reasoning axes, the cross-review engagement, and the
 warmth-accuracy tradeoff are all discarded. The model trained on this
-label learns that Response A is simply correct in this context, with no
+label learns that Response 1 is simply correct in this context, with no
 signal that qualified experts found the question genuinely
 contested.</p>
 <p><strong>Layer separation.</strong> The Rich Annotation Object
 contains information at three epistemic levels, visible in the schema’s
 nesting. Within each annotation record, the annotator’s own fields
-(preference, confidence, reasoning axes, justification, improvement
-notes) are data: they record what the annotator judged. The
-<code>peer_reviews</code> nested inside are metadata: they record how
-other annotators evaluated that judgment. The top-level
-<code>disagreement_types</code> and <code>consensus_difficulty</code>
-are interpretive: they characterise the structure of the disagreement
-for downstream consumption. These levels must remain explicitly
-separated so that reward model integration (§3) can consume each layer
-appropriately. If they are mixed, the training pipeline risks treating
-interpretive classifications as having the same epistemic status as raw
-ratings, reproducing a structural problem analogous to the entanglement
-of instructions and data in inference contexts.</p>
+(selected response, assessment, confidence, reasoning axes,
+justification, improvement notes) are data: they record what the
+annotator judged. The <code>peer_reviews</code> nested inside are
+metadata: they record how other annotators evaluated that judgment. The
+top-level <code>disagreement_types</code> and
+<code>consensus_difficulty</code> are interpretive: they characterise
+the structure of the disagreement for downstream consumption. These
+levels must remain explicitly separated so that reward model integration
+(§3) can consume each layer appropriately. If they are mixed, the
+training pipeline risks treating interpretive classifications as having
+the same epistemic status as raw ratings, reproducing a structural
+problem analogous to the entanglement of instructions and data in
+inference contexts.</p>
 <h3 id="anticipated-failure-modes-and-design-responses">§2.4 Anticipated
 Failure Modes and Design Responses</h3>
 <p>No annotation pipeline operates in ideal conditions. The design
@@ -1314,14 +1333,14 @@ reliability for this category specifically need empirical validation
 <p>Annotators may use language models to generate their justifications,
 cross-review reasoning, or improvement notes. If an annotator asks
 ChatGPT to write a plausible-sounding clinical justification for their
-preference rating, the RAO captures synthetic approximations of human
-reasoning rather than genuine expert judgment. If this data then anchors
-synthetic training corpora (§4.2), the pipeline’s entire value
-proposition collapses: the human quality anchor is itself synthetic.</p>
+assessment, the RAO captures synthetic approximations of human reasoning
+rather than genuine expert judgment. If this data then anchors synthetic
+training corpora (§4.2), the pipeline’s entire value proposition
+collapses: the human quality anchor is itself synthetic.</p>
 <p>The risk is highest for the reasoning metadata fields that require
 the most cognitive effort: motivated cross-review justifications and
-improvement notes. It is lowest for structured fields (preference
-rating, confidence score, reasoning-axis tag) that require a judgment
+improvement notes. It is lowest for structured fields (response
+selection, confidence score, reasoning-axis tag) that require a judgment
 call rather than written prose.</p>
 <p>The defence is layered. First, LLM-generated text has detectable
 statistical signatures that differ from expert domain writing,
@@ -1892,14 +1911,15 @@ of 1.0 for unanimous agreement, scaling down to near-zero for even
 splits.</p>
 <p>The risk is proportional to its simplicity: it reduces contested
 items to lower-confidence versions of the same signal. The preference
-direction is still the same. The model learns “A is probably better than
-B” rather than “A and B are close to equivalent.” It discards reasoning
-metadata, cross-review data, disagreement types, improvement notes, and
-consensus difficulty. It uses perhaps 5% of the RAO’s information
-content. Its value is as a baseline: if even this minimal integration
-produces measurable changes in model behaviour, the richer approaches
-are likely to produce larger effects. If it produces no measurable
-change, the problem may not be in the annotation data at all.</p>
+direction is still the same. The model learns “the first response is
+probably better than the second” rather than “these two are close to
+equivalent.” It discards reasoning metadata, cross-review data,
+disagreement types, improvement notes, and consensus difficulty. It uses
+perhaps 5% of the RAO’s information content. Its value is as a baseline:
+if even this minimal integration produces measurable changes in model
+behaviour, the richer approaches are likely to produce larger effects.
+If it produces no measurable change, the problem may not be in the
+annotation data at all.</p>
 <p><strong>Contrastive Disagreement Margin (DPO-specific).</strong>
 Adjust the margin in the DPO loss function based on agreement level. A
 5–0 consensus gets a standard margin. A 3–2 split gets a very tight
@@ -2571,8 +2591,8 @@ signal, not a framework diversity signal. This is another category of
 disagreement that the metadata makes classifiable and actionable.</p>
 <p>The enrichment extends beyond disagreement. The 63% of annotations
 that produce agreement also contain hidden structure that current
-pipelines discard. Two annotators who both prefer Response A may agree
-for entirely different reasons: one prioritises safety, the other
+pipelines discard. Two annotators who both prefer the same response may
+agree for entirely different reasons: one prioritises safety, the other
 prioritises clarity. A unanimous 5-0 verdict with five different
 reasoning axes tells the model that the response is robust across
 frameworks. A unanimous 5-0 verdict with identical reasoning tells the
