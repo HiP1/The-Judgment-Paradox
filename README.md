@@ -18,7 +18,7 @@ This is a collaboration invitation.
 
 ## Reading the Paper
 
-**HTML** (primary reading experience): [the-judgment-paradox.html](the-judgment-paradox.html)
+**HTML** (primary reading experience): [Read online](https://hip1.github.io/The-Judgment-Paradox/the-judgment-paradox.html)
 - Floating table of contents
 - Light/dark mode
 - Audience-coded sections

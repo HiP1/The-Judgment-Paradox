@@ -11,8 +11,8 @@ date-released: "2026-04-15"
 year: 2026
 license: CC-BY-4.0
 doi: "10.5281/zenodo.19594378"
-url: "https://hip1.github.io/the-judgment-paradox/"
-repository: "https://github.com/HiP1/the-judgment-paradox"
+url: "https://hip1.github.io/The-Judgment-Paradox/the-judgment-paradox.html"
+repository: "https://github.com/HiP1/The-Judgment-Paradox"
 keywords:
   - RLHF
   - RLHD
