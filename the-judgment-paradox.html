@@ -784,7 +784,7 @@ Agreement-for-different-reasons (same verdict, different reasoning) is
 flagged as robust agreement. The system characterises the disagreement
 structure for each item using a hybrid approach. Some classifications
 are derivable from the structured data: if all annotators share
-reasoning axes but preferences diverge, that suggests an edge case. If
+reasoning axes but assessments diverge, that suggests an edge case. If
 reasoning axes diverge systematically, that suggests framework-driven
 disagreement. If one annotator’s ratings are inconsistent with their own
 stated reasoning, that is a noise signal. Harder classifications,
@@ -1042,12 +1042,13 @@ which response the annotator preferred when multiple are present. It is
 null in single-response mode, where the <code>assessment</code> field
 carries the evaluative judgment instead. The <code>distribution</code>
 field keys on response IDs, making it format-agnostic: it represents a
-distribution over two responses, a distribution over five, or a quality
-distribution over a single response (proportion of annotators who rated
-it adequate versus inadequate). The schema adapts to the evaluation
-format. The rest of the object (reasoning axes, cross-review,
-disagreement structure, improvement notes) is identical regardless of
-how many responses the expert evaluated.</p>
+distribution over two responses, a distribution over five, or in
+single-response mode, a quality distribution keyed on assessment
+outcomes (e.g. <code>{"adequate": 0.6, "inadequate": 0.4}</code> or a
+domain-specific scale). The schema adapts to the evaluation format. The
+rest of the object (reasoning axes, cross-review, disagreement
+structure, improvement notes) is identical regardless of how many
+responses the expert evaluated.</p>
 <p>Five structural features of this schema deserve explicit
 attention.</p>
 <p>First, the <code>item_source</code> field marks whether the item is
@@ -2561,6 +2562,26 @@ pipeline proposed in this paper is, among other things, the instrument
 that would resolve this question: the RAO’s reasoning metadata and
 disagreement taxonomy are designed to distinguish noise from structured
 disagreement at the item level.</p>
+<p>A related gap deserves attention: the relationship between context
+length and annotator agreement has not been studied in the RLHF
+literature. The 63% agreement rate was measured on relatively short
+prompt-response pairs. As models produce longer outputs and handle
+longer conversations, annotators must evaluate more material. Different
+annotators will attend to different parts of long texts, remember
+different details, and weight different sections. Disagreement rates
+almost certainly increase with item length. Whether the additional
+disagreement is noise (attentional, driven by what each annotator
+happened to read carefully) or signal (framework-driven, because longer
+responses surface more axes on which experts can diverge) is an open
+question that current pipelines cannot answer and that we found no
+published research addressing. The RAO would distinguish the two:
+reasoning metadata reveals whether disagreement tracks different
+reasoning frameworks or different reading patterns. The implication
+extends to annotation quality metrics themselves: the industry’s
+inter-annotator agreement benchmarks are calibrated on short items. As
+annotation moves to longer contexts, those benchmarks become less
+reliable in a way that is not being tracked. The pilot study (§12)
+should vary item length systematically to measure this relationship.</p>
 <p>But the partition may matter less than it initially appears. “Noise”
 is not a property of the disagreement itself. It is a property of the
 metadata gap: disagreement looks like noise when the only data captured
