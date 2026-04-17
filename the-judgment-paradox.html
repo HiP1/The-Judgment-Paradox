@@ -437,7 +437,7 @@ blockquote { border-left: 3px solid var(--border); padding-left: 1.2rem; margin:
 <div class="paper-container">
 <div class="title-block">
 <h1>The Judgment Paradox</h1>
-<div class="subtitle">Disagreement Valuation, Annotation Pipelines, and the Case for Preservation</div>
+<div class="subtitle">Disagreement Valuation, Annotation Pipelines, Synthetic Data,<br>and the Case for Preservation</div>
 <div class="author-info">
 <strong>Ivan Phan</strong><br>
 Independent Researcher<br>
@@ -571,6 +571,21 @@ reasoning behind agreement carries training value that current pipelines
 discard. The pipeline is architecture-agnostic. It integrates with
 existing training methods, including RLHF, DPO, SFT, and Constitutional
 AI, at varying levels of engineering investment.</p>
+<p><strong>A note on scope.</strong> This paper began as annotation
+pipeline design. During development, the April 2026 safety literature on
+subliminal learning (Cloud et al.), persona features (Wang et al.),
+alignment faking (Greenblatt et al.), and sleeper agents (Hubinger et
+al.) was integrated to address how the RAO’s provenance guarantees
+interact with the broader training-signal landscape. That integration
+revealed a second argumentative thread: training signals need grounding
+in auditable sources whose provenance does not route through previous
+models, and the RAO is one of three such sources (formal systems,
+physical execution, and traceable human experts being the others). The
+paper now develops both threads. They connect through a through-line
+about preserving information with auditable provenance, but a reader
+expecting a single narrow claim will find a paper that does two things
+at once. This is the honest shape of what the work became rather than an
+attempt to cover an impossibly wide scope.</p>
 <p>The pipeline is not empirically tested. This paper contributes the
 design, the theoretical motivation, the assessment of integration
 approaches, and a set of testable predictions derived from established
@@ -582,14 +597,11 @@ both the propagation problem (§3.1) and the verification proxy trap.
 RL-based approaches are developed as alternatives. The downstream
 applications of the RAO extend beyond training to include synthetic data
 generation, quality anchoring, debugging provenance, and future methods
-not yet developed (§4). §4.2 situates the RAO within the synthetic-data
-safety literature (Cloud et al. 2026; Wang et al. 2026; Greenblatt et
-al. 2024; Hubinger et al. 2024; Casper et al. 2024), developing the
-principle that training signals must ground in one of three auditable
-sources: formal systems, physical execution, or traceable human experts.
-The predictions (§9) are specific enough that a pilot study could
-confirm or refute them. Implementation is a collaboration target, not a
-claim of this paper.</p>
+not yet developed (§4). §4.2 develops the principle that training
+signals must ground in one of three auditable sources: formal systems,
+physical execution, or traceable human experts. The predictions (§9) are
+specific enough that a pilot study could confirm or refute them.
+Implementation is a collaboration target, not a claim of this paper.</p>
 <h3 id="reading-guide">§1.3 Reading Guide</h3>
 <p>This paper addresses annotation pipeline design but draws on evidence
 from several fields. Readers may enter at different points depending on
@@ -2307,28 +2319,45 @@ collapse: pipelines that look like RLVR but whose verification chain
 actually routes through model-generated artifacts.</p>
 <p>The distinction matters because “RLVR” is not monolithic. Pure
 programmatic verification grounds in one of two auditable sources. The
-first is formal mathematics: a proof checker like Lean verifies against
-axioms that have no model parameters. The second is physical execution:
-code that runs and produces observable output, or a unit test that
-passes or fails based on actual machine behaviour. Both ground the
-reward signal in something with an audit trail independent of any
-training process. The safety chain developed in §4.2 does not apply to
-these cases because no model’s latent traits enter the signal path.</p>
+first is formal mathematics: proofs that are verifiable against axioms
+which have no model parameters. Tools like Lean, Coq, and Agda produce
+evidence that verification succeeded; the grounding is the verifiability
+itself, provided the theorem statements being proved have independent
+provenance. The second is physical execution: code that runs and
+produces observable output, or a unit test that passes or fails based on
+actual machine behaviour. Both ground the reward signal in something
+with an audit trail independent of any training process. The safety
+chain developed in §4.2 does not apply to these cases because no model’s
+latent traits enter the signal path.</p>
 <p>Model-based verification is different. LLM-as-judge pipelines use a
 model to grade outputs. Synthetic reward models replace hand-written
 reward functions with learned ones. Model-generated unit tests evaluate
-code against criteria the generator model considered correct. In the
-synthetic data era, even apparently programmatic verification often has
-models in the provenance chain: canonical answers generated by a model
-and verified by string match, test suites authored by a model,
-problem-answer pairs curated from model generations. String comparison
-or execution checking is trivially programmatic, but if what is being
-compared against was model-generated, the verification chain grounds in
-a model rather than in mathematical truth or physical reality. This case
-inherits the full safety chain in §4.2: subliminal trait transmission,
+code against criteria the generator model considered correct. The
+principle that matters is whether the correctness judgment depends on
+the model. If a model generates a math problem and a canonical answer,
+and training treats “matches the canonical answer” as correctness, the
+correctness judgment depends on the model’s authorship. If the same
+model-generated answer has been independently verified against a
+non-model ground truth (a human checked the arithmetic, a formal system
+verified the proof, the code actually runs and produces the expected
+output), the grounding point becomes the independent verification, and
+the model’s involvement in authoring the artifact does not contaminate
+the signal. The model is then a problem generator, not a verification
+authority.</p>
+<p>The practical case for synthetic data pipelines is usually the
+contaminated one. Models generate both problems and answers,
+verification often reduces to model-produced canonical matching, and
+test suites are authored by models whose authorship is not independently
+checked. In the synthetic data era, the provenance chain in apparently
+programmatic verification frequently routes through models at the
+load-bearing step: not at authorship (which is fine if the artifact is
+independently verifiable) but at the correctness judgment (which is not
+fine, because model judgment is exactly what the safety chain shows
+cannot be audited through filtering or evaluation). This case inherits
+the full safety chain in §4.2: subliminal trait transmission,
 subtle-error misalignment, alignment faking, sleeper agents. The
-“verifiable” label does not change the provenance of the training
-signal.</p>
+“verifiable” label does not change the provenance of the training signal
+when the verification is itself model-authored or model-judged.</p>
 <p>The two approaches remain complementary, but the complementarity is
 sharper than a coverage distinction. Pure programmatic RLVR narrows the
 territory by grounding verification in formal systems or physical
@@ -2572,10 +2601,12 @@ is therefore structural too. Training signals must ultimately ground in
 something that has an audit trail independent of model parameters. Three
 such grounding sources exist.</p>
 <p><em>Formal systems.</em> Mathematical truth grounded in axioms (Peano
-arithmetic, ZFC set theory, formal logic). A proof checker like Lean
-verifies against these without any model in the loop. The provenance of
-the reward signal is the formal system itself, which has no parameters
-to transmit traits through.</p>
+arithmetic, ZFC set theory, formal logic). Verifiability against these
+axioms has no model in the loop. Tools like Lean, Coq, or Agda produce
+evidence that a proof is valid; the grounding is the underlying
+verifiability, not any particular tool’s output. The provenance of the
+reward signal is the formal system itself, which has no parameters to
+transmit traits through.</p>
 <p><em>Physical execution.</em> Code that actually runs and produces
 observable output. Unit tests that pass or fail based on real machine
 behaviour. The provenance is physical reality, which again has no model
@@ -2585,22 +2616,41 @@ judgment with identifiable professional provenance: who annotated, what
 credentials they hold, what reasoning they provided, what framework they
 applied. The provenance is a specific person with a specific background,
 not a model whose training history is opaque.</p>
-<p>Training pipelines that ground in one of these three sources escape
-the safety chain. Pipelines that route through model-generated artifacts
-at any point, regardless of whether they look “programmatic” or
-“filtered,” inherit the full landscape of failures described above. This
-is the positive shape of the argument. The RAO is not the only escape;
-it is one of three, and it is the only one that works in contested
-domains where formal systems and physical execution cannot adjudicate.
-In the synthetic data era, where more and more of what looks like
+<p>Training pipelines whose correctness-judgment step grounds in one of
+these three sources escape the safety chain. Pipelines that route the
+correctness judgment through model-generated artifacts, regardless of
+whether the surrounding pipeline looks “programmatic” or “filtered,”
+inherit the full landscape of failures described above. The
+authorship-versus-correctness-judgment distinction from §3.5 applies: a
+model can generate problems, synthesise training items, or author
+candidate responses without contaminating the signal, provided the
+correctness judgment itself grounds in one of the three sources. This is
+the positive shape of the argument. The RAO is not the only escape; it
+is one of three, and it is the only one that works in contested domains
+where formal systems and physical execution cannot adjudicate.</p>
+<p>Each grounding source has practical complications that this paper
+names but does not fully characterise. Formal-system verification
+depends on the correctness of the proof checker (a software property,
+not a mathematical one) and on the provenance of the theorem statements
+being verified (increasingly model-generated in autoformalization
+pipelines). Physical-execution verification depends on test coverage and
+on the correspondence between test environments and deployment
+environments. Traceable-human grounding depends on expert competence
+ceilings and disclosure reluctance (§2.4 failure mode 7). Pure grounding
+is rare; most practical pipelines are hybrids where some steps ground
+cleanly and others route through models. A full characterisation of
+hybrid grounding — which steps ground where, how composite pipelines
+aggregate their grounding, and how to audit claims of grounding in
+practice — is beyond this paper’s scope.</p>
+<p>In the synthetic data era, where more and more of what looks like
 programmatic verification actually routes through models
 (model-generated test suites, model-curated training distributions,
-model-authored canonical answers), the territory where auditable-chain
-verification escapes the safety chain is shrinking. The RAO’s importance
-grows correspondingly: not because it replaces programmatic verification
-where the chain genuinely grounds, but because the territory where the
-chain genuinely grounds is smaller than the “verifiable rewards” label
-suggests.</p>
+model-authored canonical answers, model-autoformalized theorem
+statements), the territory where verification genuinely grounds is
+shrinking. The RAO’s importance grows correspondingly: not because it
+replaces programmatic verification where the chain genuinely grounds,
+but because the territory where the chain genuinely grounds is smaller
+than the “verifiable rewards” label suggests.</p>
 <p>The pipeline’s deployment model is designed for exactly this role.
 Small pools of domain experts working asynchronously (§2.2) produce a
 modest volume of maximally rich annotation data. The operating
@@ -4965,8 +5015,9 @@ a constraint.</p>
         <div class="toc-legend-item"><span class="toc-legend-swatch" style="background:var(--workforce-accent)"></span> Workforce / Ethics</div>
         <div class="toc-legend-item"><span class="toc-legend-swatch" style="background:var(--cogsci-accent)"></span> Cognitive Science</div>
     </div>
-    <a href="#disagreement-valuation-annotation-pipelines-and-the-case-for-preservation" class="toc-h2" onclick="closeToc()">Disagreement
-Valuation, Annotation Pipelines, and the Case for Preservation</a>
+    <a href="#disagreement-valuation-annotation-pipelines-synthetic-data-and-the-case-for-preservation" class="toc-h2" onclick="closeToc()">Disagreement
+Valuation, Annotation Pipelines, Synthetic Data, and the Case for
+Preservation</a>
 <a href="#abstract" class="toc-h2" onclick="closeToc()">Abstract</a>
 <a href="#introduction" class="toc-h2 toc-audience-ml" onclick="closeToc()">§1 Introduction</a>
 <a href="#the-problem" class="toc-h3" onclick="closeToc()">§1.1 The Problem</a>
