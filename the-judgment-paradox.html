@@ -1590,6 +1590,26 @@ infrastructure. If they fail in a specific way, if the reward model
 becomes calibrated but the policy remains confidently uncalibrated, the
 failure would be evidence that the optimisation paradigm itself is the
 bottleneck, not the data or the reward model.</p>
+<p>Wang and Huang (2026) develop this structural reading formally. From
+five minimal axioms (multi-dimensional quality, finite evaluation,
+effective optimisation, resource finiteness, and combinatorial
+interaction), they prove that any optimised AI agent will systematically
+under-invest effort in quality dimensions not covered by its evaluation
+system. The result establishes reward hacking as a structural
+equilibrium rather than a correctable bug, and holds across RLHF, DPO,
+Constitutional AI, and other alignment methods. For the RAO, this has
+two implications. First, it strengthens the argument that richer
+evaluation is not optional tuning but a structural necessity: if reward
+hacking tracks what evaluation covers, broadening the evaluation’s
+dimensional coverage (which is what the RAO does) directly shifts the
+equilibrium. Second, it bounds the claim. The RAO does not eliminate
+reward hacking; it shifts which dimensions get under-invested in. A
+reward model trained on RAOs that capture framework diversity, reasoning
+quality, and cross-review engagement will still produce a policy that
+under-invests in whatever the RAO does not cover. This argues for the
+multi-headed reward architecture (§3.3 Approach B) and against
+single-scalar rewards trained on RAOs: the richer signal is only useful
+if the optimisation preserves its dimensional structure.</p>
 <h3 id="primary-recommendation-sft-on-contested-items">§3.2 Primary
 Recommendation: SFT on Contested Items</h3>
 <p>The pipeline is not specific to any single training method. The RAO
@@ -2344,6 +2364,20 @@ output), the grounding point becomes the independent verification, and
 the model’s involvement in authoring the artifact does not contaminate
 the signal. The model is then a problem generator, not a verification
 authority.</p>
+<p>Cai et al. (2025) quantify how unreliable automated verifiers
+actually are in practice. Formalising verifier unreliability as a
+stochastic reward channel with asymmetric noise rates, they document
+false-negative rates of around 38% for rule-based checkers (rejecting
+correct answers due to brittle parsing or equivalence rules) and
+false-positive rates of 35–68% for LLM-based judges (accepting incorrect
+solutions based on superficial cues like reasoning-style phrasing or
+even single adversarial tokens). These are not edge cases. They are the
+normal operating range. “Verifiable” in the current literature describes
+a category of intended verification, not an achieved property of the
+signal. For the training pipeline, this has a direct consequence: a
+reward signal advertised as grounded in mathematical truth or executable
+code may in fact ground in a model judgment with 35–68% accuracy,
+inheriting the full safety chain developed in §4.2.</p>
 <p>The practical case for synthetic data pipelines is usually the
 contaminated one. Models generate both problems and answers,
 verification often reduces to model-produced canonical matching, and
@@ -2495,9 +2529,19 @@ effect. Gerstgrasser et al. (ICLR 2025) showed that collapse occurs
 under a “replace” scenario (each generation trained only on synthetic
 data from the previous one) but is avoidable under an “accumulate”
 scenario where real data is preserved alongside synthetic data across
-generations. The implication is direct: if training corpora are
-increasingly synthetic, the remaining real human data becomes the anchor
-that prevents collapse. That anchor must be maximally informative.</p>
+generations. Feng et al. (2024) bridge these findings to the practical
+question of how to intervene: verification of synthesised data can
+prevent collapse even with imperfect verifiers, provided the
+verification signal is informative. Their theoretical analysis using
+Gaussian mixtures and linear verifiers derives conditions under which
+verification effectively selects synthesised data leading to optimal
+performance, and their empirical results on matrix-eigenvalue
+computation and news summarisation show that generator-plus-verifier
+pipelines avoid the collapse that generator-only pipelines exhibit. The
+implication is direct: if training corpora are increasingly synthetic,
+the remaining real human data becomes the anchor that prevents collapse,
+and the verification signal determines whether synthetic data is useful
+or corrupting. That anchor must be maximally informative.</p>
 <p>Recent work on synthetic data verification strengthens the point
 further. Research on escaping model collapse through external verifiers
 (Yi et al. 2025) demonstrated that injecting information through an
@@ -2628,6 +2672,24 @@ correctness judgment itself grounds in one of the three sources. This is
 the positive shape of the argument. The RAO is not the only escape; it
 is one of three, and it is the only one that works in contested domains
 where formal systems and physical execution cannot adjudicate.</p>
+<p>Independent empirical evidence for the framework’s exclusions comes
+from Denisov-Blanch et al. (2026), who tested whether scaling
+inference-time compute through polling-style aggregation across many
+model samples could produce truthfulness signal in domains without
+external verifiers. Across five benchmarks, even at 25x the inference
+cost of naive sampling, aggregation yielded no consistent accuracy
+gains, and often amplified shared misconceptions. Their key finding is
+structural: under uncertainty, models are better at predicting what
+other models will say than at identifying what is true. Language model
+errors are strongly correlated, which means aggregating across models
+measures shared training rather than approaching truth. This is the
+framework’s prediction made concrete. Consensus among models is not a
+fourth grounding source, because models share training data and failure
+modes; their agreement is a signal about shared training, not about the
+world. Denisov-Blanch et al. demonstrate this directly, providing
+empirical support for the framework’s claim that model-internal
+machinery cannot substitute for grounding in formal systems, physical
+execution, or traceable humans.</p>
 <p>Each grounding source has practical complications that this paper
 names but does not fully characterise. Formal-system verification
 depends on the correctness of the proof checker (a software property,
@@ -2959,6 +3021,33 @@ noise?” The risk is “can the RAO reliably distinguish the categories?”
 That is a design question addressable by the cross-review mechanism, the
 reasoning metadata, and the longitudinal data, rather than a question
 about the underlying distribution of expert disagreement.</p>
+<p>Ghafouri et al. (2026) sharpen this analysis from the
+measurement-validity side. They argue that RLHF rests on a chain of
+assumptions — that humans have preferences about model outputs, that
+annotation tasks elicit those preferences, and that reward models can
+learn from the resulting data — and that the first two assumptions
+warrant systematic examination. Drawing on sixty years of behavioural
+science, they develop a taxonomy distinguishing genuine preferences from
+non-attitudes (responses produced without holding genuine opinions,
+documented since Converse 1964), constructed preferences (preferences
+assembled on the spot based on contextual cues rather than retrieved
+from stable representations), and measurement artifacts (identical
+questions measuring different constructs for different annotators). Each
+category requires fundamentally different treatment. Their observation
+about current practice aligns with this paper’s premise: reward models
+are trained to predict the majority label, high-disagreement items are
+filtered or downweighted, and the resulting scalar reward discards
+information about whether judgments were contested. The Judgment
+Paradox’s response to this diagnosis is infrastructural. The RAO’s
+reasoning metadata, cross-review engagement, and disagreement taxonomy
+are designed to make the distinctions Ghafouri et al. call for
+empirically observable. An annotator whose reasoning is thin, whose
+confidence is low, and whose framework shifts between equivalent items
+is producing something closer to a non-attitude than a preference. The
+RAO captures all three signals; current pipelines capture none of them.
+Measurement validity is logically prior to preference aggregation, and
+the RAO is the data format that makes validity assessment possible at
+the item level.</p>
 <p>One category deserves separate attention: simple factual or
 methodological error. An annotator may not be applying a different
 framework or experiencing fatigue. They may be wrong: a calculation
@@ -3934,6 +4023,21 @@ items) compared to hard-label-trained controls. This is the strongest
 empirical test of the pipeline’s core claim: that preserving
 disagreement in training data produces models that are better calibrated
 on genuinely contested questions.</p>
+<p><strong>Measurement instrument.</strong> The calibration outcome
+requires an operationalisation. Ghafouri et al. (2024) provide one:
+their epistemic-integrity framework measures the gap between a model’s
+linguistic assertiveness and its actual accuracy on factual claims,
+using a human-labeled dataset and a measurement method that cuts error
+rates over 50% relative to prior benchmarks. Their finding is a stark
+misalignment between confident assertion and actual certainty. This is
+the output-side phenomenon the pipeline’s training-data intervention is
+designed to address. Applied to the prediction above, the instrument
+gives concrete pass/fail criteria: models trained on RAO data should
+show reduced assertiveness-accuracy gap on contested items relative to
+consensus-trained controls. If the gap does not narrow, the training
+intervention has not propagated to the output-side behaviour the user
+actually sees, which routes back to the propagation problem (§3.1) as a
+diagnostic.</p>
 <p><strong>Diagnostic structure if the prediction fails.</strong> A null
 result is ambiguous and the ambiguity must be decomposed. If models show
 no calibration improvement, three failure modes are distinguishable.
@@ -4707,6 +4811,10 @@ inconsistencies and eyewitness confidence on mock-juror judgments.
 <em>Law and Human Behavior</em>, 26(3), 353–364.</p>
 <p>Brookings Institution (2025). Reimagining the future of data and AI
 labor in the Global South. <em>Brookings</em>, October 2025.</p>
+<p>Cai, X.-Q., Wang, W., Liu, F., Liu, T., Niu, G., &amp; Sugiyama, M.
+(2025). Reinforcement learning with verifiable yet noisy rewards under
+imperfect verifiers. <em>arXiv:2510.00915</em> (preprint, not yet
+peer-reviewed).</p>
 <p>Casper, S., Ezell, C., Siegmann, C., Kolt, N., Michael, J.,
 Hadfield-Menell, D., … &amp; Thaker, N. (2024). Black-box access is
 insufficient for rigorous AI audits. <em>Proceedings of the 2024 ACM
@@ -4744,6 +4852,10 @@ self-determination in human behavior.</em> New York: Plenum.</p>
 Marks, S., … &amp; Hubinger, E. (2024). Sycophancy to subterfuge:
 Investigating reward-tampering in large language models.
 <em>arXiv:2406.10162</em>.</p>
+<p>Denisov-Blanch, Y., Kazdan, J., Chudnovsky, J., Schaeffer, R., Guan,
+S., Adeshina, S., &amp; Koyejo, S. (2026). Consensus is not
+verification: Why crowd wisdom strategies fail for LLM truthfulness.
+<em>arXiv:2603.06612</em> (preprint, not yet peer-reviewed).</p>
 <p>Dohmatob, E., Feng, Y., &amp; Mania, H. (2025). Strong model
 collapse. <em>ICLR 2025</em> (Spotlight).</p>
 <p>Edmondson, A. C. (1999). Psychological safety and learning behavior
@@ -4756,6 +4868,10 @@ Journal of the European Union</em>, 13 June 2024.</p>
 Daneshjou, R., &amp; Koyejo, S. (2025). SycEval: Evaluating LLM
 sycophancy. <em>Proceedings of the Eighth AAAI/ACM Conference on AI,
 Ethics, and Society</em>, 8(1).</p>
+<p>Feng, Y., Dohmatob, E., Yang, P., Charton, F., &amp; Kempe, J.
+(2024). Beyond model collapse: Scaling up with synthesized data requires
+verification. <em>International Conference on Learning Representations
+(ICLR)</em>. <em>arXiv:2406.07515</em>.</p>
 <p>Fernandes, D., Villa, S., Nicholls, S., Haavisto, O., Buschek, D.,
 Schmidt, A., Kosch, T., Shen, C., &amp; Welsch, R. (2026). AI makes you
 smarter but none the wiser: The disconnect between performance and
@@ -4771,6 +4887,13 @@ via soft-label multi-task learning. <em>NAACL 2021</em>.</p>
 <p>Gerstgrasser, M., Schaeffer, R., Dey, A., Rafailov, R., &amp; Donoho,
 D. (2025). Collapse or thrive? Perils and promises of synthetic data in
 a self-generating world. <em>ICLR 2025</em>.</p>
+<p>Ghafouri, B., Mohammadzadeh, S., Zhou, J., Nair, P., Tian, J.-J.,
+Tsujimura, H., Goel, M., Krishna, S., Rabbany, R., Godbout, J.-F., &amp;
+Pelrine, K. (2024). Epistemic integrity in large language models.
+<em>arXiv:2411.06528</em> (preprint, not yet peer-reviewed).</p>
+<p>Ghafouri, B., et al. (2026). Measuring human preferences in RLHF is a
+social science problem. <em>arXiv:2604.03238</em> (preprint, not yet
+peer-reviewed).</p>
 <p>Ghasemi, M. &amp; Crowley, M. (2026). Objective decoupling under
 sycophantic evaluators. <em>arXiv:2602.08092</em>.</p>
 <p>Gigerenzer, G., Hoffrage, U., &amp; Kleinbölting, H. (1991).
@@ -4922,6 +5045,9 @@ Miserendino, S., Wang, J., Rajaram, A., Heidecke, J., Patwardhan, T.,
 &amp; Mossing, D. (2026). Persona features control emergent
 misalignment. <em>International Conference on Learning Representations
 (ICLR 2026)</em>.</p>
+<p>Wang, J. &amp; Huang, J. (2026). Reward hacking as equilibrium under
+finite evaluation. <em>arXiv:2603.28063</em> (preprint, not yet
+peer-reviewed).</p>
 <p>Wang, Y., Pan, X., &amp; Yue, Y. (2026). Epistemic independence
 training. <em>arXiv:2602.01528</em>.</p>
 <p>Wiley, J. (1998). Expertise as mental set: The effects of domain
