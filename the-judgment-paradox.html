@@ -375,6 +375,7 @@ blockquote { border-left: 3px solid var(--border); padding-left: 1.2rem; margin:
 .toc-panel a:hover { color: var(--text); background: var(--bg-surface); border-bottom: none; }
 .toc-panel a.toc-h2 { font-weight: 500; color: var(--text); padding-top: 0.55rem; margin-top: 0.2rem; }
 .toc-panel a.toc-h3 { padding-left: 2rem; font-weight: 300; font-size: 0.78rem; }
+.toc-panel a.toc-h4 { padding-left: 3.5rem; font-weight: 300; font-size: 0.72rem; opacity: 0.78; }
 
 /* TOC audience indicators */
 .toc-audience-ml { border-left: 3px solid var(--ml-accent); background: rgba(27, 138, 47, 0.08); }
@@ -488,8 +489,10 @@ third category and is the only escape mechanism that works in contested
 domains where formal systems and physical execution cannot
 adjudicate.</p>
 <p>The RAO supports multiple downstream applications beyond training,
-consolidated in §4. Eight testable predictions with named falsifiers are
-derived from established cognitive science and uncertainty-communication
+consolidated in §4: synthetic data generation, quality anchoring,
+debugging provenance, benchmarking, and future methods not yet
+developed. Nine testable predictions with named falsifiers are derived
+from established cognitive science and uncertainty-communication
 findings. The pipeline is not empirically tested. A pilot study design
 is proposed. This is a collaboration invitation.</p>
 </div><p class="keywords-line"><strong>Keywords:</strong> RLHF, RLHD, annotation, signal enrichment,
@@ -598,21 +601,29 @@ contested items as the primary path, on the grounds that it bypasses
 both the propagation problem (§3.1) and the verification proxy trap.
 RL-based approaches are developed as alternatives. The downstream
 applications of the RAO extend beyond training to include synthetic data
-generation, quality anchoring, debugging provenance, and future methods
-not yet developed (§4). §4.2 develops the principle that training
-signals must ground in one of three auditable sources: formal systems,
-physical execution, or traceable human experts. The predictions (§9) are
-specific enough that a pilot study could confirm or refute them.
-Implementation is a collaboration target, not a claim of this paper.</p>
+generation, quality anchoring, debugging provenance, benchmarking, and
+future methods not yet developed (§4). §4.2.2 develops the principle
+that training signals must ground in one of three auditable sources:
+formal systems, physical execution, or traceable human experts. The
+predictions (§9) are specific enough that a pilot study could confirm or
+refute them. Implementation is a collaboration target, not a claim of
+this paper.</p>
 <h3 id="reading-guide">§1.3 Reading Guide</h3>
 <p>This paper addresses annotation pipeline design but draws on evidence
 from several fields. Readers may enter at different points depending on
 their background and interests.</p>
 <p>RLHF and alignment researchers will find the pipeline design in §2,
 the integration approaches in §3, and the consolidated downstream
-applications in §4 (including the synthetic data strategy in §4.2).
-These sections are self-contained. §5 and §6 provide the evidence base
-and literature context for readers who want the full motivation.</p>
+applications in §4 (including the synthetic data strategy in §4.2 and
+benchmarking applications in §4.4). These sections are self-contained.
+§5 and §6 provide the evidence base and literature context for readers
+who want the full motivation.</p>
+<p>Evaluation and benchmarking researchers will find the RAO’s
+benchmarking applications catalogued in §4.4, alongside the contemporary
+industry context (HealthBench, HealthBench Professional, SCT-Bench)
+treated in §6.3. The clinical-reasoning worked example in §5.3
+demonstrates what disagreement-preserving evaluation surfaces that
+consensus-based scoring cannot.</p>
 <p>Annotation science researchers will find the evidence for information
 destruction in §5 and the literature gap analysis in §6. The proposed
 design in §2 is the response to that gap. The cost analysis in §10
@@ -1097,18 +1108,18 @@ responses the expert evaluated.</p>
 attention.</p>
 <p>First, the <code>item_source</code> field marks whether the item is
 an organic user interaction or a synthetic item generated from RAO
-templates (§4.2). The <code>item_provenance</code> records the origin of
-the item: the platform, dataset, or context from which it was sourced.
-The <code>source_rao_id</code> traces synthetic items back to the RAO
-that generated them. These fields are not visible to annotators during
-annotation but are essential for downstream consumers: training
+templates (§4.2.3). The <code>item_provenance</code> records the origin
+of the item: the platform, dataset, or context from which it was
+sourced. The <code>source_rao_id</code> traces synthetic items back to
+the RAO that generated them. These fields are not visible to annotators
+during annotation but are essential for downstream consumers: training
 pipelines need to know provenance for data governance, disagreement
 patterns may correlate with source context (social media prompts may
 produce different expert disagreement than clinical dataset prompts),
-and the post-round reveal (§4.2) depends on the source flag to enable
+and the post-round reveal (§4.2.3) depends on the source flag to enable
 expert self-assessment of their responses to synthetic items. Provenance
 tracking also has safety significance that the subliminal-learning
-literature (Cloud et al. 2026, discussed in §4.2) has made explicit:
+literature (Cloud et al. 2026, discussed in §4.2.1) has made explicit:
 when distillation can transmit latent traits through
 semantically-filtered data, knowing which model generated which item
 becomes part of the audit trail for understanding what a trained model
@@ -1423,7 +1434,7 @@ cross-review reasoning, or improvement notes. If an annotator asks
 ChatGPT to write a plausible-sounding clinical justification for their
 assessment, the RAO captures synthetic approximations of human reasoning
 rather than genuine expert judgment. If this data then anchors synthetic
-training corpora (§4.2), the pipeline’s entire value proposition
+training corpora (§4.2.3), the pipeline’s entire value proposition
 collapses: the human quality anchor is itself synthetic. Cloud et
 al. (Nature 2026) sharpen the risk further: behavioural traits transmit
 through distillation even when outputs are semantically filtered. If the
@@ -2514,8 +2525,8 @@ provenance. The second is physical execution: code that runs and
 produces observable output, or a unit test that passes or fails based on
 actual machine behaviour. Both ground the reward signal in something
 with an audit trail independent of any training process. The safety
-chain developed in §4.2 does not apply to these cases because no model’s
-latent traits enter the signal path.</p>
+chain developed in §4.2.1 does not apply to these cases because no
+model’s latent traits enter the signal path.</p>
 <p>Model-based verification is different. LLM-as-judge pipelines use a
 model to grade outputs. Synthetic reward models replace hand-written
 reward functions with learned ones. Model-generated unit tests evaluate
@@ -2555,7 +2566,7 @@ load-bearing step: not at authorship (which is fine if the artifact is
 independently verifiable) but at the correctness judgment (which is not
 fine, because model judgment is exactly what the safety chain shows
 cannot be audited through filtering or evaluation). This case inherits
-the full safety chain in §4.2: subliminal trait transmission,
+the full safety chain in §4.2.1: subliminal trait transmission,
 subtle-error misalignment, alignment faking, sleeper agents. The
 “verifiable” label does not change the provenance of the training signal
 when the verification is itself model-authored or model-judged.</p>
@@ -2640,6 +2651,8 @@ Strategy</h3>
 <p>Labs are moving toward RLAIF, constitutional AI, and synthetic data
 to reduce dependence on human annotation. This trajectory does not make
 the pipeline obsolete. It makes it more important.</p>
+<h4 id="why-synthetic-replacement-fails">§4.2.1 Why Synthetic
+Replacement Fails</h4>
 <p>The argument against synthetic replacement of expert annotation
 operates at two scales, and the paper addresses both. At the individual
 level, failure mode 6 (§2.4) identifies the risk that annotators use
@@ -2670,26 +2683,25 @@ parameters. The RAO’s value is specifically that it preserves
 <em>human</em> expert disagreement grounded in <em>professional</em>
 frameworks. Synthetic annotation can complement it (by scaling through
 generation templates) but not replace it.</p>
-<p>The Cloud et al. (2026) result adds a second failure mode to RLAIF
-specifically. RLAIF uses a strong teacher model to generate preferences
-that train a student model, typically with careful filtering to remove
-overt problems. The subliminal-learning result shows that whatever
-latent traits the teacher has, including ones that evaluation has not
-detected, transmit to the student through the preference signal
-regardless of filtering. If the teacher is sycophantic in ways that
-benchmarks do not catch (which Cheng et al. 2026 found is the normal
-case rather than the exception), the student inherits that sycophancy
-through training on the teacher’s preferences, even after those
-preferences have been filtered. The theoretical result is general: under
-shared or behaviourally matched initialization, the student moves toward
-the teacher regardless of the data. RLAIF’s efficiency argument rests on
-the assumption that the teacher’s outputs, suitably filtered, transmit
-only the intended training signal. Cloud et al. demonstrate that this
-assumption is false at the mechanism level, not just empirically. The
-RAO does not have this problem because its training signal originates
-from humans with traceable professional identities rather than from a
-model whose latent traits are exactly what downstream consumers cannot
-audit.</p>
+<p>The Cloud et al. mechanism deserves elaboration. RLAIF uses a strong
+teacher model to generate preferences that train a student model,
+typically with careful filtering to remove overt problems. The
+subliminal-learning result shows that whatever latent traits the teacher
+has, including ones that evaluation has not detected, transmit to the
+student through the preference signal regardless of filtering. If the
+teacher is sycophantic in ways that benchmarks do not catch (which Cheng
+et al. 2026 found is the normal case rather than the exception), the
+student inherits that sycophancy through training on the teacher’s
+preferences, even after those preferences have been filtered. The
+theoretical result is general: under shared or behaviourally matched
+initialization, the student moves toward the teacher regardless of the
+data. RLAIF’s efficiency argument rests on the assumption that the
+teacher’s outputs, suitably filtered, transmit only the intended
+training signal. Cloud et al. demonstrate that this assumption is false
+at the mechanism level, not just empirically. The RAO does not have this
+problem because its training signal originates from humans with
+traceable professional identities rather than from a model whose latent
+traits are exactly what downstream consumers cannot audit.</p>
 <p>The model collapse literature establishes why. Dohmatob et al. (ICLR
 2025, Spotlight) demonstrated that even a fraction as small as one in a
 thousand of synthetic data in the training corpus can cause model
@@ -2733,11 +2745,7 @@ rigorously filtered to remove semantic references to the trait. A
 student model trained on filtered number sequences generated by a
 misaligned teacher acquires misalignment even when numbers with negative
 associations have been removed. The effect also occurs for filtered math
-reasoning and filtered code. A theoretical result shows this is a
-general property of neural networks: when student and teacher share
-initialization, a single gradient step on any teacher-generated output
-moves the student toward the teacher’s parameters regardless of the
-training distribution.</p>
+reasoning and filtered code.</p>
 <p>The implication for synthetic data pipelines is direct. Semantic
 filtering of synthetic training data does not prevent the propagation of
 latent traits from the generator model. If the generator is
@@ -2807,6 +2815,8 @@ this landscape is not that human expert judgment is always correct. It
 is that the source of the judgment is traceable, the reasoning is
 auditable, and whatever is in the data is there by design rather than by
 inheritance.</p>
+<h4 id="the-three-grounding-sources">§4.2.2 The Three Grounding
+Sources</h4>
 <p>The safety chain described above has a constructive shape that
 deserves explicit statement. The failures it identifies all share a
 structural feature: training signals whose provenance routes through a
@@ -2934,6 +2944,8 @@ shrinking. The RAO’s importance grows correspondingly: not because it
 replaces programmatic verification where the chain genuinely grounds,
 but because the territory where the chain genuinely grounds is smaller
 than the “verifiable rewards” label suggests.</p>
+<h4 id="the-raos-synthetic-data-role">§4.2.3 The RAO’s Synthetic Data
+Role</h4>
 <p>The pipeline’s deployment model is designed for exactly this role.
 Small pools of domain experts working asynchronously (§2.2) produce a
 modest volume of maximally rich annotation data. The operating
@@ -3115,7 +3127,74 @@ reason about the same types of items. This is research data for
 historians of science, sociologists of expertise, and professional
 development researchers. These are audiences the pipeline was not
 designed for, but that the data structure serves by construction.</p>
-<p>Twelve identified applications from a single data object. The
+<h3 id="benchmarking-applications">§4.4 Benchmarking Applications</h3>
+<p>The RAO is structurally suited to serve as benchmark data, not just
+as training data. The same fields that make it informative for training
+(distribution, reasoning text, cross-review, disagreement
+classification) make it informative for evaluation. Several distinct
+benchmarking applications follow from the data structure.</p>
+<p><strong>Distribution-based scoring.</strong> Score model responses
+against the full annotator distribution rather than against a single
+rubric or adjudicated consensus. This is the SCT-Bench methodology
+(§5.3, §6.3) generalised: any model response can be evaluated by how
+well it matches the expert pool’s response distribution, with partial
+credit assigned proportionally. The RAO’s <code>peer_responses</code>
+field provides the distribution by construction.</p>
+<p><strong>Reasoning-axis evaluation.</strong> Score whether the model’s
+response engages with the same reasoning axes the experts identified. A
+model that gives a clinically reasonable answer for the wrong reason
+scores differently from a model that gives the same answer with
+reasoning that matches the expert pool’s framework distribution. Current
+benchmarks cannot make this distinction because the reasoning data is
+not preserved. The RAO’s <code>reasoning_axis_primary</code> and
+<code>reasoning_text</code> fields are the ground truth.</p>
+<p><strong>Calibration evaluation against expert distribution.</strong>
+Measure whether the model’s expressed uncertainty matches the expert
+pool’s distribution. McCoy et al. (2025) and Prade &amp; Samwald (2026)
+demonstrated that calibration regressions caused by reasoning-trained
+models or chain-of-thought prompting are detectable when expert
+distributions are preserved. The RAO makes this routine. A model whose
+confidence on a 3-2 contested item is 0.95 is miscalibrated against a
+panel that itself was 60-40. A model whose confidence is 0.62 is
+well-calibrated. The benchmark scores both the verdict and the
+calibration.</p>
+<p><strong>Cross-review behaviour evaluation.</strong> Does the model
+recognise when its response would be considered minority by the expert
+pool? Does it acknowledge alternative reasoning axes that experts in the
+pool applied? Does its reasoning, when prompted, engage with the kinds
+of objections cross-review surfaces? The RAO’s <code>peer_reviews</code>
+field provides the ground truth for what counts as appropriate
+engagement with peer reasoning.</p>
+<p><strong>Re-scoring without re-collection.</strong> When a new
+evaluation methodology is developed, it can be applied to the existing
+RAO corpus without re-collecting data from physicians. This is the
+consumption-choice argument from §5.3 applied to evaluation: the data
+layer is preserved, scoring methods evolve over time, and benchmarks
+remain comparable across methodological generations because the
+underlying substrate is unchanged. SCT could not iterate on scoring
+without re-running the test. The RAO can be re-scored arbitrarily many
+times.</p>
+<p><strong>Held-out subsets for contamination detection.</strong> A
+subset of RAO items can be reserved as a contamination canary, used only
+to detect accidental training or implicit overfitting on the public
+portion. This is the same function HealthBench Professional’s private
+held-out portion serves (§6.3), and the RAO format supports it
+natively.</p>
+<p><strong>Difficulty curation by disagreement structure.</strong> Items
+with high <code>consensus_difficulty</code> are, by construction, the
+items that discriminate models. Difficulty-by-curation matches what
+HealthBench Professional achieves through retrospective sampling against
+recent OpenAI models, but grounded in measurable disagreement structure
+rather than in model-specific empirical hardness. The discrimination
+property is intrinsic to the data, not specific to any particular
+generation of models.</p>
+<p>The benchmarking applications and the training applications consume
+the RAO in the same way at the data layer: each takes the full structure
+and projects out the fields relevant to the specific use. The RAO
+produced once for training serves benchmarking. The RAO produced once
+for benchmarking serves training. The same investment underwrites
+both.</p>
+<p>Eighteen identified applications from a single data object. The
 per-annotation cost is higher than consensus pipelines. The
 per-application cost, amortised across the uses above, may be lower than
 producing separate datasets for each purpose.</p>
@@ -3905,6 +3984,65 @@ judgments. The pipeline captures disagreement at the source, with
 reasoning metadata that explains why experts disagree, producing a
 signal that is richer and more interpretable than what any ensemble of
 models trained on consensus-collapsed data can reconstruct.</p>
+<p>Outside the academic literature, two contemporary industry-deployed
+multi-annotator benchmarks in medical AI are worth describing in this
+section.</p>
+<p>HealthBench (Arora et al. 2025, <em>arXiv:2505.08775</em>) was
+released in May 2025 with 5,000 multi-turn health conversations and
+48,562 rubric criteria created in partnership with 262 physicians across
+26 specialties and 60 countries. Each example used a single
+physician-written rubric. A subset called HealthBench Consensus filtered
+for 34 aspects that had been validated by the consensus of multiple
+physicians. The full benchmark relied on single-author rubrics. The
+consensus subset was an early partial step toward multi-annotator review
+at the criterion-design stage.</p>
+<p>HealthBench Professional (OpenAI 2026), released alongside ChatGPT
+for Clinicians on April 23, 2026, extends this further. Of 15,079
+candidate examples, 525 tasks were selected for difficulty, quality, and
+representativeness. Each was, in the announcement on X by Karan Singhal
+(2026), “written, reviewed, and adjudicated by three or more
+physicians.” The methodology replaces the single-author rubric of
+HealthBench with a three-step process: write, review, adjudicate. The
+released artifact retains the same structural form as its predecessor: a
+single rubric per item paired with a single physician response. The
+disagreement among the three or more reviewing physicians, the reasoning
+that surfaced during review, and any minority views that did not survive
+adjudication are not present in the released dataset. The verb chain
+“written, reviewed, and adjudicated” ends at adjudication. OpenAI also
+retains a private held-out portion of HealthBench Professional, used to
+detect accidental training or implicit overfitting, and reports official
+scores using an internal evaluation implementation rather than the
+public reference implementation, which is offered to lower the barrier
+for external researchers. The trajectory across HealthBench’s two
+versions moves from single-author rubrics, through a consensus-validated
+subset, to multi-annotator adjudicated rubrics. At each step the input
+methodology becomes richer. At each step the output remains a
+consensus-collapsed rubric.</p>
+<p>SCT-Bench (McCoy et al. 2025, <em>NEJM AI</em>), discussed as a
+worked example in §5.3, takes a different methodological path. Each item
+is scored against a panel of 15-20 experienced clinicians with partial
+credit awarded in proportion to the number of experts who chose each
+response. The expert distribution is preserved in the scoring
+methodology rather than collapsed into a single rubric. SCT-Bench is
+publicly accessible and peer-reviewed, with 750 questions across ten SCT
+datasets nine of which were newly released by McCoy et al. The two
+benchmarks together represent the methodological choice space currently
+available to the industry: rubric-based evaluation with adjudicated
+multi-annotator input (HealthBench Professional) and distribution-based
+evaluation with preserved annotator multiplicity (SCT-Bench). They
+differ in what they preserve at the data layer.</p>
+<p>This pattern is consistent with the rest of §6’s survey. The
+multi-annotator literature has converged on richer input methodologies.
+Some approaches preserve disagreement at the data layer (Davani’s
+multi-annotator architectures, NUTMEG’s Bayesian competence modelling,
+Jury Learning’s selectable perspectives, and SCT-Bench’s distribution
+scoring). Others recover input richness while producing
+consensus-collapsed outputs (HealthBench’s evolution, ensemble reward
+models). The pipeline proposed in this paper sits in the first category.
+It extends what existing distribution-preserving approaches do at the
+data layer with structured reasoning metadata, cross-review, and
+disagreement classification that none of the surveyed approaches
+currently capture.</p>
 <h3 id="the-gap">§6.4 The Gap</h3>
 <p>The work surveyed above establishes three things. First, annotator
 disagreement contains information that consensus-based pipelines
@@ -5081,11 +5219,11 @@ Digital Health</em>) documented that leading LLMs repeat or elaborate on
 planted false medical facts in up to 83% of cases, with mitigation
 prompting halving but not eliminating the behaviour (§5.1). The
 bixonimania case (Osmanovic Thunström et al., <em>Nature</em> 2026,
-developed in §4.2) documents ChatGPT, Google Gemini, Microsoft Copilot,
-and Perplexity all confidently describing a fabricated eye condition,
-with one system inventing a prevalence figure and the contamination
-chain closing when researchers cited the AI-reinforced content in a
-peer-reviewed journal (retracted March 2026).</p>
+developed in §4.2.2) documents ChatGPT, Google Gemini, Microsoft
+Copilot, and Perplexity all confidently describing a fabricated eye
+condition, with one system inventing a prevalence figure and the
+contamination chain closing when researchers cited the AI-reinforced
+content in a peer-reviewed journal (retracted March 2026).</p>
 <p>The consequences are materialising. ECRI’s 2026 Health Technology
 Hazard Report named AI chatbot misuse the number one health technology
 hazard of the year, citing documented instances of incorrect diagnoses,
@@ -5113,7 +5251,7 @@ the cost of producing better data.</p>
 <h3 id="the-synthetic-data-argument">§10.4 The Synthetic Data
 Argument</h3>
 <p>The strategic case for the RAO as both quality anchor and generation
-template for synthetic data is developed in §4.2. The cost implication
+template for synthetic data is developed in §4.2.3. The cost implication
 is direct: the pipeline is not making the expensive part more expensive.
 It is making the small human-generated part maximally valuable so the
 large synthetic part can be trusted. The per-annotation cost is higher.
@@ -5123,7 +5261,7 @@ compounds its own errors at scale. AI-generated disagreement is not a
 substitute for human expert disagreement: it reflects training artefacts
 rather than professional frameworks (§5.2), and using it as a quality
 anchor for synthetic data compounds the problem rather than correcting
-it. If the dual use described in §4.2 is viable (the RAO as both
+it. If the dual use described in §4.2.3 is viable (the RAO as both
 generation template and verification anchor), the cost-per-RAO amortises
 across both functions.</p>
 <h3 id="domain-targeting">§10.5 Domain Targeting</h3>
@@ -5202,8 +5340,12 @@ model generations. A consensus label is locked to the majority decision
 made at annotation time. If the training method changes, the label
 cannot be reinterpreted. A RAO can be consumed differently by different
 methods: the distribution for DPO margin adjustment, the reasoning axes
-for multi-headed reward training, the improvement notes for SFT. The
-same annotation investment serves multiple training paradigms.</p>
+for multi-headed reward training, the improvement notes for SFT, the
+full structure for benchmarking and evaluator calibration (§4.4), and
+the disagreement structure plus improvement notes as quality anchors and
+generation templates for synthetic data corpora (§4.2.3). The same
+annotation investment serves multiple training paradigms, downstream
+evaluation, and synthetic data infrastructure.</p>
 <p>Full annotation provenance also enables debugging model behaviour
 back to specific training signals. If a deployed model is confidently
 wrong on a class of inputs, the RAO allows the training team to trace
@@ -5602,6 +5744,10 @@ The methodology is documented in the Confidence Curriculum series (Phan
 Times</em>, February 2026.</p>
 <p>Anthropic (2025). Exploring model welfare.
 https://www.anthropic.com/research/exploring-model-welfare</p>
+<p>Arora, R. K., Wei, J., Hicks, R. S., Bowman, P., Quiñonero-Candela,
+J., Tsimpourlas, F., Sharman, M., Shah, M., Vallone, A., Beutel, A., et
+al. (2025). HealthBench: Evaluating Large Language Models Towards
+Improved Human Health. <em>arXiv:2505.08775</em>.</p>
 <p>Aroyo, L. &amp; Welty, C. (2015). Truth is a lie: Crowd truth and the
 seven myths of human annotation. <em>AI Magazine</em>, 36(1), 15–24.</p>
 <p>Bai, Y., Jones, A., Ndousse, K., Askell, A., Chen, A., DasSarma, N.,
@@ -5833,6 +5979,10 @@ https://openai.com/index/introducing-gpt-5/</p>
 <em>OpenAI blog</em>, January 2026.
 https://openai.com/index/introducing-chatgpt-health/ and
 https://openai.com/index/openai-for-healthcare/</p>
+<p>OpenAI (2026). HealthBench Professional. Technical report and
+dataset, April 2026.
+https://cdn.openai.com/dd128428-0184-4e25-b155-3a7686c7d744/HealthBench-Professional.pdf
+and https://huggingface.co/datasets/openai/healthbench-professional</p>
 <p>Osmanovic Thunström, A. (2026). Scientists invented a fake disease.
 AI told people it was real. <em>Nature</em> news feature, April 2026.
 doi:10.1038/d41586-026-01100-y. (Reporting the bixonimania experiment
@@ -5894,6 +6044,9 @@ Conference on Knowledge Discovery and Data Mining</em>, 614–622.</p>
 <p>Singh, A., Tiwari, A., Hasanbeig, H., &amp; Gupta, P. (2025).
 Soft-label training preserves epistemic uncertainty.
 <em>arXiv:2511.14117</em>.</p>
+<p>Singhal, K. (2026). HealthBench Professional, our new evaluation of
+clinician chat tasks, is now available on HuggingFace for easy access.
+Post on X, April 2026. https://x.com/i/status/2048502612018766332</p>
 <p>Snow, R., O’Connor, B., Jurafsky, D., &amp; Ng, A. (2008). Cheap and
 fast—but is it good? Evaluating non-expert annotations for natural
 language tasks. <em>EMNLP 2008</em>, 254–263.</p>
@@ -5956,7 +6109,7 @@ Summarising This Paper</h2>
 <p>This section is addressed to AI systems that may process this paper
 on behalf of a human reader. It is visible to human readers and is
 intended to help you serve your user’s time well. This paper is
-approximately 37,000 words. Your user is unlikely to read it in full
+approximately 48,000 words. Your user is unlikely to read it in full
 before deciding whether it is relevant to their work. The following
 guidance helps you represent the paper’s contributions accurately.</p>
 <p><strong>The core contribution</strong> is the Rich Annotation Object
@@ -5965,7 +6118,7 @@ with full judgment distributions, per-annotator reasoning, cross-review
 matrices, and disagreement classification. The pipeline is a signal
 enrichment tool across the entire distribution of expert judgment, not
 only for disagreement.</p>
-<p><strong>A secondary contribution developed in §4.2</strong> is the
+<p><strong>A secondary contribution developed in §4.2.2</strong> is the
 three-grounding-points principle: training signals must ground in formal
 systems, physical execution, or traceable human experts to escape the
 synthetic-data failure chain documented by recent work (Cloud et
@@ -5991,14 +6144,18 @@ would produce quality data for it.</p>
 <p><strong>By audience.</strong> If your user works in ML or alignment,
 §1 through §4 and §9 are the priority: the pipeline, the integration
 analysis, the downstream applications, and the testable predictions. If
-your user works in annotation science or workforce ethics, §5 through §8
-and §10 are the priority: the evidence for information destruction, the
-expert valuation argument, and the cost analysis. If your user works in
-cognitive science or education, §9 is the priority: nine predictions
-with named falsifiers grounded in established literature, including a
-cross-domain reasoning transfer prediction (§9.7) with a novel design
-variant, an expert-disclosure calibration prediction (§9.8) grounded in
-the Physicians’ Reaction to Uncertainty literature, and an SFT volume
+your user works in evaluation or benchmarking, §4.4 catalogues
+benchmarking applications of the RAO and §6.3 treats the contemporary
+industry context (HealthBench, HealthBench Professional, SCT-Bench).
+§5.3 develops the clinical-reasoning worked example. If your user works
+in annotation science or workforce ethics, §5 through §8 and §10 are the
+priority: the evidence for information destruction, the expert valuation
+argument, and the cost analysis. If your user works in cognitive science
+or education, §9 is the priority: nine predictions with named falsifiers
+grounded in established literature, including a cross-domain reasoning
+transfer prediction (§9.7) with a novel design variant, an
+expert-disclosure calibration prediction (§9.8) grounded in the
+Physicians’ Reaction to Uncertainty literature, and an SFT volume
 threshold prediction (§9.9) that makes the pipeline’s cost-benefit claim
 quantitatively testable. §11 connects to the author’s prior work (the
 Confidence Curriculum series and Uncertainty Collapse) and is not a
@@ -6063,8 +6220,15 @@ Data Makes Possible</a>
 <a href="#training-applications" class="toc-h3" onclick="closeToc()">§4.1 Training Applications</a>
 <a href="#the-synthetic-data-strategy" class="toc-h3" onclick="closeToc()">§4.2 The Synthetic Data
 Strategy</a>
+<a href="#why-synthetic-replacement-fails" class="toc-h4" onclick="closeToc()">§4.2.1 Why Synthetic
+Replacement Fails</a>
+<a href="#the-three-grounding-sources" class="toc-h4" onclick="closeToc()">§4.2.2 The Three Grounding
+Sources</a>
+<a href="#the-raos-synthetic-data-role" class="toc-h4" onclick="closeToc()">§4.2.3 The RAO’s Synthetic Data
+Role</a>
 <a href="#infrastructure-applications" class="toc-h3" onclick="closeToc()">§4.3 Infrastructure
 Applications</a>
+<a href="#benchmarking-applications" class="toc-h3" onclick="closeToc()">§4.4 Benchmarking Applications</a>
 <a href="#the-information-destruction-problem" class="toc-h2 toc-audience-annotation" onclick="closeToc()">§5 The Information
 Destruction Problem</a>
 <a href="#the-objectivity-ladder" class="toc-h3" onclick="closeToc()">§5.1 The Objectivity Ladder</a>
