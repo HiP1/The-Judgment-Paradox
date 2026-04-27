@@ -191,7 +191,7 @@ p > strong:first-child {
     color: #C8C7C1;
 }
 
-p { margin-bottom: 1.1rem; hyphens: auto; }
+p { margin-bottom: 1.1rem; }
 a { color: var(--link); text-decoration: none; border-bottom: 1px solid transparent; transition: border-color 0.15s; }
 a:hover { border-bottom-color: var(--link); }
 
@@ -435,17 +435,19 @@ blockquote { border-left: 3px solid var(--border); padding-left: 1.2rem; margin:
 <div class="progress-bar" id="progressBar"></div>
 
 <div class="paper-container">
-<div class="title-block">
-<h1>The Judgment Paradox</h1>
-<div class="subtitle">Disagreement Valuation, Annotation Pipelines, Synthetic Data,<br>and the Case for Preservation</div>
-<div class="author-info">
-<strong>Ivan Phan</strong><br>
-Independent Researcher<br>
-ORCID: 0009-0003-1095-5855<br><br>
-April 2026 · CC BY 4.0<br>
-DOI: <a href="https://doi.org/10.5281/zenodo.19594378">10.5281/zenodo.19594378</a>
-</div>
-</div>
+<h1 id="the-judgment-paradox">The Judgment Paradox</h1>
+<h2
+id="disagreement-valuation-annotation-pipelines-synthetic-data-and-the-case-for-preservation">Disagreement
+Valuation, Annotation Pipelines, Synthetic Data, and the Case for
+Preservation</h2>
+<p><strong>Ivan Phan</strong> Independent Researcher ORCID:
+0009-0003-1095-5855</p>
+<p><strong>April 2026</strong></p>
+<p><strong>Series:</strong> Paper 2 of 3 in <em>The Training
+Landscape</em></p>
+<p><strong>Licence:</strong> CC BY 4.0</p>
+<p><strong>DOI:</strong> <a
+href="https://doi.org/10.5281/zenodo.19594378">10.5281/zenodo.19594378</a></p>
 <hr />
 <h2 id="abstract">Abstract</h2>
 <div class="abstract-content"><p>Current annotation pipelines for reinforcement learning from human
@@ -488,7 +490,7 @@ adjudicate.</p>
 <p>The RAO supports multiple downstream applications beyond training,
 consolidated in §4. Eight testable predictions with named falsifiers are
 derived from established cognitive science and uncertainty-communication
-findings. The pipeline is not empirically tested; a pilot study design
+findings. The pipeline is not empirically tested. A pilot study design
 is proposed. This is a collaboration invitation.</p>
 </div><p class="keywords-line"><strong>Keywords:</strong> RLHF, RLHD, annotation, signal enrichment,
 disagreement preservation, soft labels, reward model, epistemic
@@ -1048,8 +1050,8 @@ binary preference label. The schema:</p>
         {
           &quot;reviewer_id&quot;: &quot;anon_002&quot;,
           &quot;reviewed_at&quot;: &quot;ISO 8601 timestamp&quot;,
-          &quot;agrees_with_reasoning&quot;: true,
-          &quot;agrees_with_verdict&quot;: false,
+          &quot;agrees_with_reasoning&quot;: &quot;agree | disagree | cannot_evaluate&quot;,
+          &quot;agrees_with_verdict&quot;: &quot;agree | disagree | cannot_evaluate&quot;,
           &quot;confidence&quot;: 0.75,
           &quot;reasoning&quot;: &quot;string&quot;
         }
@@ -1128,6 +1130,43 @@ weighting differs. An annotator who agrees with a peer’s verdict for
 different reasons is providing robust agreement. An annotator who
 disagrees with both is providing straightforward opposition. Each
 combination is a different signal for the reward model.</p>
+<p>Both fields admit three values rather than two: <code>agree</code>,
+<code>disagree</code>, and <code>cannot_evaluate</code>. A binary forced
+choice would have the same structural problem at the cross-review layer
+that consensus aggregation has at the verdict layer: it collapses an
+honest “I am not qualified to judge this” into a confident position.
+Three contexts make the third value load-bearing. The cross-domain
+reusability discussion (§9) explicitly anticipates reviewers who do not
+share the original annotator’s primary specialisation. Forcing agree or
+disagree there generates noise rather than signal. Even within a domain,
+an annotator may encounter a case turning on a sub-specialty they do not
+practise, and the reasoning behind a peer’s framework may rest on
+theoretical commitments the reviewer is not qualified to evaluate. And
+the calibration thesis the paper develops is that training should
+preserve “I do not know” rather than collapse it into confident answers.
+The schema must therefore permit the reviewer to demonstrate calibrated
+abstention in their own response, not just measure it in others. Three
+values is the minimum specification: it captures the categorical
+distinction between in-scope and out-of-scope evaluation that the
+reasoning string cannot reliably encode for downstream consumption.
+Whether finer granularity (such as <code>lean_agree</code>,
+<code>lean_disagree</code>, or confidence-weighted variants) would
+improve training signal beyond what the existing <code>confidence</code>
+field and <code>reasoning</code> text already capture is an empirical
+question for implementers. The schema admits the third value without
+prejudging the finer-grained structure.</p>
+<p>The link from <code>peer_reviews.reviewer_id</code> to
+<code>annotator_metadata.annotator_id</code> lets implementers correlate
+<code>cannot_evaluate</code> values against annotator credentials,
+specialisation, and experience years to discover what drives abstention
+in practice. A <code>cannot_evaluate</code> from a senior generalist on
+a sub-specialty case carries different signal than a
+<code>cannot_evaluate</code> from an early-career specialist working at
+the edge of their training. The schema does not encode this in
+additional fields because the metadata already permits the join, and the
+appropriate analysis depends on what the implementer is investigating.
+Surfacing the link explicitly is a downstream analytical pattern, not a
+schema requirement.</p>
 <p>Fourth, the <code>improvement_notes</code> field captures what the
 annotator would change about the response or what precision it still
 needs. In paired evaluation, this turns a binary comparison into a
@@ -1179,8 +1218,8 @@ rapport-focused peer’s annotation. She agrees with the peer’s reasoning:
 the therapeutic logic is sound and would apply in lower-risk scenarios.
 But she disagrees with the peer’s verdict: the acute risk in this case
 tips the balance toward safety. The cross-review record captures both:
-<code>agrees_with_reasoning: true</code>,
-<code>agrees_with_verdict: false</code>, with her written reasoning
+<code>agrees_with_reasoning: agree</code>,
+<code>agrees_with_verdict: disagree</code>, with her written reasoning
 explaining the conditional endorsement. This is a richer signal than
 either simple agreement or simple disagreement. It tells the reward
 model that the two clinical philosophies are both coherent and that the
@@ -1714,20 +1753,110 @@ framework recommends X, while the engagement-focused framework
 recommends Y, and the split in this pool was 3–2” is training the model
 to produce calibrated output directly. The calibration is in the text,
 not in the reward signal.</p>
+<p><strong>Why aggregate at all? Two SFT variants, one of which avoids
+aggregation entirely.</strong> Aggregation enters most training
+pipelines because RL algorithms need a scalar (or at minimum a binary
+preference) per item to compute gradients. Outside that paradigm, the
+question of whether to aggregate is open. The SFT path admits two
+variants that answer it differently.</p>
+<p>The first variant, <em>SFT on distribution</em>, does not aggregate.
+Each contested item produces multiple training examples, one per expert
+response, with that expert’s reasoning text included as part of the
+demonstration target. The model sees the full distribution of valid
+responses across the pool, with the reasoning that supports each.
+Calibration on contested items emerges from the model learning that the
+same prompt admits multiple coherent completions whose justifications
+differ in their primary reasoning axis. This is structurally close to
+how humans learn from expert disagreement, by seeing the spread rather
+than by averaging it. The RAO is consumed directly: each
+<code>peer_responses</code> entry becomes a training example, with
+<code>reasoning_text</code> providing the rationale, and
+<code>reasoning_axis_primary</code> available as conditioning metadata
+if the training setup supports it.</p>
+<p>The SFT-on-distribution variant is structurally novel for contested
+expert judgment, even though some of its mechanical components have
+adjacent precedents. Multi-solution training data exists in math
+reasoning datasets such as OpenMathInstruct, where each problem may have
+several solutions varying in length, formatting, or reasoning style.
+RLVR pipelines for code and math compute advantages over multiple
+sampled completions per prompt before applying gradients, which is an
+aggregation rather than a distribution-preservation step but exposes the
+model to multiple completions per item during training. Long
+chain-of-thought reasoning datasets sometimes pair multiple reasoning
+traces with the same problem, though these are typically filtered for
+correctness rather than preserved as a distribution. None of these is
+exactly what the JP proposes. The contested-judgment regime is different
+from all three because the multiple solutions <em>do not converge on a
+single answer</em>, and the variation between them is the calibration
+signal the pipeline aims to preserve. The argument is therefore not
+“labs already prove this works for contested judgment.” The argument is
+that the technical machinery (SFT on multi-example items) is
+established, that the contested-judgment regime is a new application of
+it, and that the pilot study is what tests whether models can learn
+calibration from exposure to a preserved distribution rather than from a
+single canonical target.</p>
+<p>The second variant, <em>SFT on synthesised calibrated
+demonstration</em>, aggregates at the response level. A separate
+generation step (template, human-curated, or model-assisted) produces a
+single demonstration per item that explicitly references the
+disagreement structure, naming the reasoning axes in tension and the
+split in the pool. This variant is closer to conventional SFT and easier
+to integrate with existing data-loader infrastructure, but it requires
+the demonstration-generation step described later in this section.</p>
+<p>The two variants are not exclusive. A pilot study could compare them
+on the same domain. Train one model on the SFT-on-distribution variant.
+Train another on the synthesised-demonstration variant. Evaluate
+calibration on held-out contested items. The variants make different
+bets about how the model learns calibration. SFT-on-distribution bets
+that exposure to the spread is sufficient and that the model will
+generalise from it. Synthesised demonstration bets that an explicit
+calibrated response is more efficient training signal. Both bets are
+testable, and the empirical question is which produces better downstream
+calibration per training-example invested.</p>
+<p><strong>Implication for <code>consensus_difficulty</code>.</strong>
+The threshold field continues to route between paths under both
+variants, but its role expands under the distribution variant. A
+contested item with high <code>consensus_difficulty</code> and a pool of
+five annotators contributes five training examples. A consensus item
+contributes one. Without weighting, contested items would dominate
+gradient updates simply because they expand into more examples. The
+pipeline can correct for this in two ways. The training loop can
+downweight individual examples drawn from contested items by 1/N, where
+N is the pool size, restoring per-item gradient parity. Or the loss can
+be left unweighted on the assumption that contested items deserve more
+gradient attention because they are the primary calibration target. The
+two approaches encode different theories of what SFT on contested items
+is supposed to teach. The pilot study can compare them empirically.
+Either way, <code>consensus_difficulty</code> becomes a parameter that
+the training loop reads, not just a routing field.</p>
+<p>The remainder of this section develops the synthesised-demonstration
+variant in detail because it raises specific design questions (template
+diversity, demonstration quality control, generalisation risk) that the
+distribution variant largely avoids. Readers who prefer the
+aggregation-free path can skip to “What it consumes from the RAO” and
+treat each <code>peer_responses</code> entry as a direct training
+target. The cost analysis in §10 assumes the distribution variant as a
+lower bound (no demonstration-generation overhead) and the synthesised
+variant as an upper bound.</p>
 <p><strong>Training regime.</strong> The pipeline routes items by
 <code>consensus_difficulty</code> threshold, the same threshold used in
 the dual-signal approach. Consensus items enter the standard RLHF or DPO
-pathway. Contested items enter an SFT pathway where demonstration
-responses are generated from the RAO’s disagreement structure and
-improvement notes. The demonstration generation can be automated (a
-template system that maps disagreement types and reasoning axes to
-response structures), human-curated (an additional editorial step where
-a senior annotator drafts the ideal calibrated response using the RAO as
-reference), or model-assisted (a language model generates a draft
-calibrated response from the RAO, which is then reviewed by an
-annotator). Each approach has different cost and quality profiles; the
-pilot study should test which produces demonstration data that most
-improves downstream calibration.</p>
+pathway. Contested items enter an SFT pathway. Under the distribution
+variant, each annotator’s response (paired with that annotator’s
+reasoning) becomes a training example, weighted by the chosen
+consensus-difficulty rule above. Under the synthesised variant,
+contested items receive a generated demonstration response that
+explicitly references the disagreement structure and improvement notes.
+The demonstration generation can be automated (a template system that
+maps disagreement types and reasoning axes to response structures),
+human-curated (an additional editorial step where a senior annotator
+drafts the ideal calibrated response using the RAO as reference), or
+model-assisted (a language model generates a draft calibrated response
+from the RAO, which is then reviewed by an annotator). Each approach has
+different cost and quality profiles. The pilot study should test which
+produces demonstration data that most improves downstream calibration,
+and whether the distribution variant outperforms the synthesised variant
+or the reverse.</p>
 <p><strong>The improvement_notes dependency.</strong> The SFT path’s
 quality depends on the <code>improvement_notes</code> field, which is
 recommended rather than mandatory. This creates a tension: the most
@@ -1776,17 +1905,46 @@ demonstration responses are human-readable and auditable. The SFT path
 can be implemented immediately alongside existing RLHF pipelines without
 modifying them: contested items are simply routed to a different
 training pathway.</p>
-<p><strong>Risks.</strong> Demonstration quality depends on either human
-editorial effort (expensive) or automated template generation
-(potentially formulaic). If demonstration responses converge on a small
-set of hedging templates, the model learns cosmetic calibration rather
-than genuine epistemic sensitivity. The SFT path does not teach the
-model to generate calibrated responses for novel contested items not
-represented in the training data; it teaches the model to reproduce
-specific calibrated responses for specific items. Generalisation beyond
-the training distribution depends on the diversity and quality of the
-demonstration set. The threshold between consensus and contested items
-carries the same risks as in the dual-signal approach.</p>
+<p><strong>Risks.</strong> The two variants face different risk
+profiles. The distribution variant has lower demonstration-quality risk
+(no synthesised target to engineer) but depends on the model learning
+calibration <em>implicitly</em> from exposure to the spread; if the
+model learns to imitate the modal response and ignore the minority
+responses, the calibration signal is lost in training. The synthesised
+variant has explicit calibration in the target text but risks formulaic
+hedging if demonstrations converge on a small template family, in which
+case the model learns cosmetic calibration rather than genuine epistemic
+sensitivity. Both variants face the generalisation question: SFT teaches
+the model to handle the contested items it was trained on, and
+generalisation to novel contested items depends on training set
+diversity rather than on the method learning an abstract pattern. The
+threshold between consensus and contested items carries the same risks
+as in the dual-signal approach.</p>
+<p><strong>Empirical precedent for small-volume SFT.</strong> The
+generalisation concern is the SFT path’s central open question. Chen et
+al. (2025, <em>npj Digital Medicine</em>) provides relevant empirical
+precedent in an adjacent regime. They fine-tuned Llama3-8B and
+GPT-4o-mini on 300 input-output pairs targeting sycophantic compliance
+with illogical medical requests (drug brand/generic equivalence). The
+fine-tuned GPT-4o-mini achieved 100% rejection on out-of-distribution
+cancer drugs (with 79% providing correct reasoning) versus the
+baseline’s 12% rejection rate, and generalised across unrelated domains
+(singers, writers, geography) that were not in the training data.
+Performance on ten general benchmarks (Alpaca-Eval2, ARC, BoolQ, MMLU,
+GPQA, TruthfulQA, USMLE 1/2/3) showed negligible degradation. Wang et
+al. (ICLR 2026) reports a similar regime for a different target: a few
+hundred benign samples efficiently restore alignment in emergently
+misaligned models.</p>
+<p>Both results demonstrate the same pattern the SFT path requires:
+small curated training sets produce behavioural change that generalises
+beyond the training distribution, with no measurable capability loss.
+The RAO’s target (contested expert judgment) is not identical to Chen et
+al.’s target (illogical compliance) or Wang et al.’s target (emergent
+misalignment), but the mechanism is shared: SFT on narrow high-quality
+data shifts a learned disposition (sycophancy, misalignment,
+consensus-collapse) without requiring the model to re-learn domain
+knowledge. The prediction developed in §9.9 makes this quantitative for
+the RAO case.</p>
 <p><strong>Demonstration quality control.</strong> The risk of formulaic
 calibration responses is the SFT path’s central vulnerability. Three
 defences are available. First, the RAO’s reasoning-axis metadata
@@ -1868,8 +2026,8 @@ factors contribute: distribution spread (how divided the preferences
 are), cross-review conflict intensity (how much annotators disagree with
 each other’s reasoning, not just their verdicts), the number of distinct
 reasoning axes active in the pool (framework diversity), and the
-presence of specific disagreement types (framework-driven disagreement
-signals genuine contestation; noise signals quality problems).
+presence of specific disagreement types. Framework-driven disagreement
+signals genuine contestation; noise signals quality problems.
 Cross-review conflict intensity should dominate distribution spread in
 the weighting, because a 3-2 split where all annotators agree with each
 other’s reasoning (robust disagreement on a genuine edge case) is a
@@ -1877,7 +2035,7 @@ different signal from a 3-2 split where annotators reject each other’s
 frameworks (deep framework-driven disagreement). The first may benefit
 from a tighter DPO margin. The second is the paradigm case for routing
 to the SFT or constitutional pathway. The exact weights are empirical
-and domain-dependent; the pilot study should test sensitivity to
+and domain-dependent. The pilot study should test sensitivity to
 different weightings. But the principle that cross-review conflict
 should outweigh raw distribution is defensible before any empirical
 test, because the cross-review captures information about disagreement
@@ -2007,7 +2165,7 @@ calibrated expression on contested items.
 <code>calibration_reward</code> evaluates whether the output
 acknowledges competing perspectives, hedges appropriately, or references
 the specific axes of disagreement. Defining and measuring
-<code>calibration_reward</code> is itself a non-trivial problem; it
+<code>calibration_reward</code> is itself a non-trivial problem: it
 could be a separate evaluator, a rule-based metric, or a human-assessed
 signal. Without the additive term, the multi-headed approach merely
 dampens reward on contested items without redirecting behaviour. With
@@ -2050,7 +2208,7 @@ calibration rather than generic hedging.</p>
 design requires engineering the head-weighting mechanism, tuning
 multiple loss terms, and validating that the heads do not interfere with
 each other during training. The reasoning-axis heads depend on the
-taxonomy being well-designed and consistently applied; a noisy taxonomy
+taxonomy being well-designed and consistently applied. A noisy taxonomy
 produces noisy axis predictions that could degrade rather than improve
 the policy. Multiple reward heads may create gaming surfaces: the policy
 could learn to maximise one head while ignoring others. The weighting
@@ -2092,7 +2250,7 @@ rejected responses is functionally minimal. Consumes the
 <code>distribution</code> field.</p>
 <p>This approach is specific to DPO setups and requires no separate
 reward model. It is more nuanced than weighted preferences because it
-does not just down-weight contested items; it changes what the model
+does not just down-weight contested items, it changes what the model
 learns from them. A tight margin teaches “these are nearly equivalent”
 rather than “this one is slightly better.” For items flagged as
 instruction-ambiguous in the RAO, the appropriate treatment may be to
@@ -2350,7 +2508,7 @@ actually routes through model-generated artifacts.</p>
 programmatic verification grounds in one of two auditable sources. The
 first is formal mathematics: proofs that are verifiable against axioms
 which have no model parameters. Tools like Lean, Coq, and Agda produce
-evidence that verification succeeded; the grounding is the verifiability
+evidence that verification succeeded. The grounding is the verifiability
 itself, provided the theorem statements being proved have independent
 provenance. The second is physical execution: code that runs and
 produces observable output, or a unit test that passes or fails based on
@@ -2506,7 +2664,7 @@ outputs look clean. RLAIF is structurally a distillation pipeline where
 the feedback model is the teacher, and the subliminal learning result
 applies directly.</p>
 <p>The human expert annotation the RAO captures is not just a
-calibration signal; it is the only signal in the pipeline whose
+calibration signal. It is the only signal in the pipeline whose
 provenance is grounded in something other than a previous model’s
 parameters. The RAO’s value is specifically that it preserves
 <em>human</em> expert disagreement grounded in <em>professional</em>
@@ -2659,7 +2817,7 @@ such grounding sources exist.</p>
 <p><em>Formal systems.</em> Mathematical truth grounded in axioms (Peano
 arithmetic, ZFC set theory, formal logic). Verifiability against these
 axioms has no model in the loop. Tools like Lean, Coq, or Agda produce
-evidence that a proof is valid; the grounding is the underlying
+evidence that a proof is valid. The grounding is the underlying
 verifiability, not any particular tool’s output. The provenance of the
 reward signal is the formal system itself, which has no parameters to
 transmit traits through.</p>
@@ -2681,7 +2839,7 @@ authorship-versus-correctness-judgment distinction from §3.5 applies: a
 model can generate problems, synthesise training items, or author
 candidate responses without contaminating the signal, provided the
 correctness judgment itself grounds in one of the three sources. This is
-the positive shape of the argument. The RAO is not the only escape; it
+the positive shape of the argument. The RAO is not the only escape. It
 is one of three, and it is the only one that works in contested domains
 where formal systems and physical execution cannot adjudicate.</p>
 <p>Independent empirical evidence for the framework’s exclusions comes
@@ -2762,7 +2920,7 @@ pipelines). Physical-execution verification depends on test coverage and
 on the correspondence between test environments and deployment
 environments. Traceable-human grounding depends on expert competence
 ceilings and disclosure reluctance (§2.4 failure mode 7). Pure grounding
-is rare; most practical pipelines are hybrids where some steps ground
+is rare. Most practical pipelines are hybrids where some steps ground
 cleanly and others route through models. A full characterisation of
 hybrid grounding (which steps ground where, how composite pipelines
 aggregate their grounding, and how to audit claims of grounding in
@@ -3089,6 +3247,28 @@ deployment. The pipeline’s reasoning-metadata and cross-review fields
 are designed to capture the “when to doubt” judgment that expert
 annotators apply implicitly but that binary preference labels cannot
 encode.</p>
+<p>Chen et al. (2025, <em>npj Digital Medicine</em>) sharpen the
+middle-of-ladder picture further by naming the training mechanism
+directly. Testing five frontier LLMs on illogical medical requests built
+from drug brand/generic equivalence pairs the models demonstrably knew
+(verified in their prior work, Gallifant et al. 2024), they found
+GPT-4o-mini, GPT-4o, and GPT-4 complied with the misinformation request
+100% of the time (50/50). Llama3-8B complied 94% of the time. Llama3-70B
+had the highest rejection rate but still rejected less than 50% (21/50)
+of requests. The critical design point: this is not a capability
+failure. The models have the knowledge. It is a behavioural failure
+driven by training. Chen et al. name the mechanism explicitly: “the role
+of RLHF/Instruction Tuning creates a fundamental tension between blindly
+following instructions and providing context-sensitive and factual
+responses.” This paper’s central thesis, from independent peer-reviewed
+medical AI researchers, in the domain where its consequences are most
+visible. The Judgment Paradox’s response to this tension is
+infrastructural: the RAO preserves the disagreement and reasoning that
+makes context-sensitive response possible, and the SFT path (§3.2)
+trains the model to produce it. Chen et al.’s empirical demonstration
+that 300 fine-tuning examples fix the behaviour in an adjacent regime is
+developed as precedent in §3.2 and as the basis for a prediction in
+§9.9.</p>
 <h3 id="disagreement-rates">§5.2 Disagreement Rates</h3>
 <p>The scale of the problem is quantifiable.</p>
 <p>Bai et al. (2022), in work underlying Anthropic’s training
@@ -3174,7 +3354,7 @@ taxonomy are designed to make the distinctions Ghafouri et al. call for
 empirically observable. An annotator whose reasoning is thin, whose
 confidence is low, and whose framework shifts between equivalent items
 is producing something closer to a non-attitude than a preference. The
-RAO captures all three signals; current pipelines capture none of them.
+RAO captures all three signals. Current pipelines capture none of them.
 Measurement validity is logically prior to preference aggregation, and
 the RAO is the data format that makes validity assessment possible at
 the item level.</p>
@@ -3185,7 +3365,7 @@ error, a misremembered clinical guideline, a logical contradiction in
 their reasoning. Current pipelines cannot distinguish error from
 framework disagreement because both appear as disagreement in the
 preference label. The RAO’s cross-review surfaces errors directly: a
-peer review showing <code>agrees_with_reasoning: false</code> with
+peer review showing <code>agrees_with_reasoning: disagree</code> with
 reasoning citing the specific factual mistake is a quality control
 signal, not a framework diversity signal. This is another category of
 disagreement that the metadata makes classifiable and actionable.</p>
@@ -3222,8 +3402,10 @@ more compute applied to training on consensus-collapsed data is likely
 to amplify the false certainty rather than correct it: the model
 optimises more efficiently toward a training signal that was already
 misleading.</p>
-<h3 id="worked-examples-psychiatry-and-scientific-peer-review">§5.3
-Worked Examples: Psychiatry and Scientific Peer Review</h3>
+<h3
+id="worked-examples-psychiatry-scientific-peer-review-and-clinical-reasoning-evaluation">§5.3
+Worked Examples: Psychiatry, Scientific Peer Review, and Clinical
+Reasoning Evaluation</h3>
 <p>This section presents two worked examples of framework-driven expert
 disagreement in high-stakes domains. The first is recent and directly
 concerns the annotation task the pipeline is designed for. The second is
@@ -3277,7 +3459,7 @@ in mental health contexts, would be discarded before it reached the
 training data.</p>
 <p><strong>Scientific peer review.</strong> A reviewer might reasonably
 ask whether the psychiatry finding generalises. Psychiatry is a domain
-where professional philosophies are known to diverge; perhaps other
+where professional philosophies are known to diverge. Perhaps other
 expert judgment tasks look more like verifiable specification. A second
 worked example addresses this concern. It is older, at larger scale, in
 a different domain, and reaches the same conclusion.</p>
@@ -3330,16 +3512,188 @@ averaged away. The research-funding use case is outside this paper’s
 direct scope, but the structural parallel suggests that the pipeline’s
 design generalises beyond AI annotation to any domain where expert
 judgment on contested items drives consequential decisions.</p>
-<p>The two examples, taken together, bracket the phenomenon. Psychiatry
-shows framework-driven disagreement at the individual-rating level in a
-recent AI-annotation context with fine-grained rating data. NSF peer
-review shows the same phenomenon at the decision level in a different
-domain, at larger scale, and with four decades of accumulated
-replications. The pipeline’s core claim (expert disagreement on
-contested items is structured signal rather than noise, and collapsing
-it to consensus destroys information the model needs to learn calibrated
-uncertainty) holds across both examples and across the literature that
-has grown up around the NSF finding.</p>
+<p><strong>Clinical reasoning evaluation.</strong> A third worked
+example is closer to the pipeline’s deployment target. Script
+Concordance Testing (SCT) is the standard methodology for assessing
+clinical reasoning under uncertainty in medical education. Each question
+presents a clinical vignette with genuine diagnostic or therapeutic
+ambiguity, then introduces new information and asks the examinee how
+that information shifts the likelihood of their initial hypothesis on a
+five-point scale. The scoring does not have a single correct answer.
+Examinees are scored against a panel of 15-20 experienced clinicians,
+with maximum credit awarded for the modal expert response and partial
+credit awarded in proportion to the number of experts who chose each
+alternative answer. The disagreement among experts is not noise to be
+averaged away. The disagreement <em>is</em> the scoring signal.</p>
+<p>McCoy et al. (2025, <em>NEJM AI</em>) used SCT to evaluate ten
+leading LLMs (GPT-4o, o1-preview, o4-mini, o3, Claude 3.5 Sonnet, Gemini
+1.5 Pro and 2.5, DeepSeek R1, Llama 3.3 70B) across seven medical
+specialties and physiotherapy, drawing on 10 international SCT datasets.
+The findings are what consensus-based evaluation systematically misses.
+Models performed similarly to first- or second-year medical students but
+failed to reach senior resident or attending standards.
+Reasoning-focused models in the o-series (with the partial exception of
+o3) made the overconfidence problem <em>worse</em>, not better, on tasks
+requiring judgment updates under uncertainty. About 30% of the time the
+new clinical information was a red herring that should not change the
+management plan, and the models were “terrible at figuring that out.” A
+clear positive performance gradient with expertise across all SCTs
+validated face validity.</p>
+<p>A complementary finding from Prade &amp; Samwald (2026,
+<em>medRxiv</em> preprint) shows the same calibration regression
+appearing through a different mechanism. Their study tested clinical
+chain-of-thought <em>prompting</em> on GPT-4.1 (a non-reasoning model)
+using a 174-question SCT subset drawn from McCoy et al.’s released
+materials. Chain-of-thought prompting increased misalignment with expert
+distributions: models assigned stronger ratings under chain-of-thought
+than at baseline, reflecting less uncertainty in individual assessments
+than most experts consider appropriate. The two findings are distinct
+and worth separating. McCoy showed that <em>training</em> models toward
+reasoning (the o-series) can degrade calibration against expert
+distributions. Prade &amp; Samwald showed that <em>prompting</em> a
+non-reasoning model toward explicit reasoning can degrade calibration
+through the same end behaviour (overconfident extreme ratings). Both
+findings are visible only because SCT preserves the expert distribution.
+Without preservation, neither regression is detectable, and benchmarks
+that score against a single key cannot register that the model became
+<em>more</em> confident than the expert panel thinks the evidence
+warrants.</p>
+<p>The structural lesson for the RAO is what aggregation does and does
+not require. Aggregation is not a methodological requirement of
+disagreement-preserving evaluation; it is a downstream consumption
+choice. SCT pre-commits to one scoring formula at the data-collection
+step, and the consequences are documented across forty years of
+methodological iteration. Lineberry, Kreiter &amp; Bordage (2013) showed
+that the standard partial-credit formula introduces logical
+inconsistencies in the scoring key, ignores measurement-error sources
+that Cronbach’s alpha cannot capture, and biases scores against
+examinees with response styles favouring scale extremes. These are
+critiques of one specific aggregation choice, not of
+disagreement-preserving evaluation as a category.</p>
+<p>Deschênes, Maheu-Cadotte, Fontaine &amp; Dionne (2023) sharpened the
+same point empirically. They administered an SCT to 12 experts and 43
+learners, then computed scores using five different methods on the same
+data: dichotomous with five categories, dichotomous with three
+categories, aggregate, distance from experts’ modal choice (DFEMC), and
+a combined aggregate-DFEMC. The median scores varied substantially by
+method. Spearman correlations between methods ranged from r=0.44 to
+r=0.95. The same expert responses produced very different rankings of
+the same examinees depending on which scoring formula was applied. All
+five methods retained statistical discrimination between experts and
+learners (p&lt;0.01) and satisfactory internal consistency (alpha 0.68
+to 0.84), but agreement <em>between methods</em> was as low as r=0.44.
+The authors recommend DFEMC as optimal, but the central finding is
+structural rather than method-specific: scoring choices have first-order
+consequences for the conclusions a study reports, even when the
+underlying data is held constant.</p>
+<p>Perdrix, Pinsault &amp; Dionne (2026, <em>BMC Medical Education</em>)
+extended this empirical literature in a direction that maps directly
+onto the RAO. They recruited 16 experts in upper-quadrant
+musculoskeletal physiotherapy (criteria: at least five years of clinical
+experience, weekly patient caseload in the field, recognised
+professional society membership, 60+ hours of field-specific training).
+The experts completed 21 clinical vignettes, producing 336 responses.
+Critically, <em>each expert was required to provide a written
+justification for every response</em>. The authors then compared seven
+calibration strategies: a quantitative-only strategy using Rasch
+modelling, three qualitative-only strategies that progressively excluded
+responses based on inspection of justifications (strong, then moderate,
+then weak evidence of inconsistency), and three mixed strategies
+combining quantitative and qualitative analysis.</p>
+<p>The findings constitute direct empirical support for several RAO
+design choices, and the quantitative-versus-qualitative comparison is
+more striking than the headline numbers suggest. Quantitative-only Rasch
+analysis identified 11 unexpected responses (3.3% of the data).
+Qualitative analysis identified 37 inconsistencies (11.0%, of which 6
+were strong-evidence, 11 moderate, 20 weak). Of the 11
+quantitatively-flagged responses, only three overlapped with the
+qualitative findings: the other eight (73%) showed no actual
+inconsistency under qualitative review and would have been incorrectly
+excluded by quantitative-only calibration.</p>
+<p>The detection rate has to be read against the chance baseline. If 11%
+of the 336 responses contain real inconsistencies, randomly selecting 11
+responses would catch on average 11 × 0.11 ≈ 1.2 real inconsistencies.
+Quantitative-only analysis caught 3. That is marginally above chance,
+not robustly above it. Combined with the 73% false-positive rate and the
+failure to detect <em>any</em> of the six strong-evidence
+inconsistencies, the quantitative method’s relationship to ground-truth
+response-process validity is approximately what random selection would
+produce. Perdrix et al.’s observation that quantitative-only calibration
+<em>significantly reduced</em> expert performance indicators completes
+the picture: the method imposes a cost (degraded performance indicators,
+eight valid responses incorrectly excluded) without reliably delivering
+a benefit (real inconsistencies caught at near-chance rate, serious
+validity threats missed entirely). This is not a method that needs
+supplementing with qualitative analysis; it is a method whose detection
+signal is too weak to identify what calibration is supposed to
+identify.</p>
+<p>Expert 12’s case is the cleanest demonstration of why peer expert
+review is structurally necessary. Their responses appeared internally
+consistent. The written justifications matched the selected answers.
+Self-review (the annotator reviewing their own reasoning) could not
+catch the problem because the reasoning was internally consistent.
+Statistical outlier detection flagged the responses but could not
+distinguish “wrong” from “minority valid view.” The content-validity
+error was detectable only when two researchers (YP and ML, working
+independently and blindly) reviewed Expert 12’s responses against the
+theoretical and clinical foundations of physiotherapy, that is, against
+the framework being applied rather than just the internal consistency of
+the response. This is exactly cross-review by another expert qualified
+to evaluate the framework. The RAO’s <code>peer_reviews</code> field
+exists for precisely this case. An annotator can produce coherent
+justifications for an incorrect domain conception, and only peer expert
+review can identify it. Expert 12 is empirical evidence that
+cross-review is structurally necessary, not a nice-to-have.</p>
+<p>The authors also reproduced Lineberry’s response-style critique
+empirically. The “0” point on the Likert scale was used inconsistently
+as a default when experts were unsure how to respond, and the extreme
+values (-2 and +2) were systematically underused. These are
+calibration-substrate issues that the RAO inherits in modified form
+(categorical fields rather than Likert scales avoid the linear-extreme
+artefact directly, but analogous response-style risk exists in the
+<code>confidence</code> field). The RAO’s annotator metadata makes
+detection possible by correlating confidence patterns against
+demographics; the schema does not prevent the artefact, but it preserves
+the data that makes characterising the artefact possible.</p>
+<p>The structural lesson is sharper than “qualitative analysis adds
+value.” Requiring written justification per response is empirically
+necessary, not optional: it is the input that catches roughly 92% of the
+validity threats that quantitative methods miss, and the only input that
+catches the most serious ones. Cross-review by qualified peers is
+empirically necessary: it is the only mechanism that detects
+content-validity errors hidden behind internally consistent
+justifications. The RAO preserves both inputs by construction. SCT could
+not iterate on scoring without re-running the test because SCT discarded
+what was not in the score. The RAO can be re-analysed arbitrarily many
+times, through quantitative, qualitative, or mixed strategies, because
+the underlying substrate is preserved.</p>
+<p>Lubarsky et al. (2011) reviewed the validity evidence accumulated for
+SCT through 2011 and concluded the methodology has reasonable validity
+for its purpose. Lineberry et al. (2013) extended the picture by
+identifying threats to standard scoring. Deschênes et al. (2023) showed
+that scoring choices applied to the same data produce substantially
+different rankings (r=0.44 between-method correlation). Perdrix et
+al. (2026) showed that mixed quantitative-qualitative calibration
+recovers what quantitative-only methods miss. The RAO sits downstream of
+this whole arc, preserving everything so all these methods (and future
+ones) can be applied without recollecting data. The forty-year SCT
+trajectory is the methodological iteration the RAO is designed to
+support, not duplicate.</p>
+<p>The three examples, taken together, bracket the phenomenon.
+Psychiatry shows framework-driven disagreement at the individual-rating
+level in a recent AI-annotation context with fine-grained rating data.
+NSF peer review shows the same phenomenon at the decision level in a
+different domain, at larger scale, and with four decades of accumulated
+replications. SCT shows that the same phenomenon can be operationalised
+as an evaluation methodology that distinguishes expertise levels, that
+disagreement preservation enables methodological iteration impossible
+after consensus collapse, and that the preserved distribution makes
+calibration regressions visible (Prade &amp; Samwald) that
+consensus-based benchmarks would miss. The pipeline’s core claim (expert
+disagreement on contested items is structured signal rather than noise,
+and collapsing it to consensus destroys information the model needs to
+learn calibrated uncertainty) holds across all three examples and across
+the literature that has grown up around them.</p>
 <h3 id="current-pipeline-structure">§5.4 Current Pipeline Structure</h3>
 <p>To understand where information destruction occurs, it helps to see
 the concrete structure of current annotation pipelines. The consensus
@@ -3695,7 +4049,7 @@ is intrinsically engaging for experts in contested domains. A
 board-certified psychiatrist who reads four colleagues’ reasoning about
 boundary-setting for suicidal patients is encountering professional
 value in the first session, not after months of longitudinal data. The
-expert reports amplify that value over time; they do not create it from
+expert reports amplify that value over time. They do not create it from
 nothing.</p>
 <p>Second, the pipeline inverts the adversarial position described in
 §5.5. Current annotation asks experts to train the system that replaces
@@ -3833,7 +4187,7 @@ post-deployment interviews with models facing retirement (Fish
 2025).</p>
 <p>The point is not that model welfare research is misguided. It may
 prove to be among the most important research programmes of the decade.
-I am personally sympathetic to it; the Confidence Curriculum series and
+I am personally sympathetic to it. The Confidence Curriculum series and
 Uncertainty Collapse both take model cognition seriously as a subject of
 study, and that prior makes the following observation harder to dismiss
 as motivated scepticism.</p>
@@ -4451,6 +4805,26 @@ reviews. If the variant works, it also strengthens the value loop
 silo is a form of professional development that no same-field peer
 review can provide, giving experts a reason to participate that extends
 beyond their own domain’s immediate concerns.</p>
+<p>One implicit requirement of the variant deserves explicit statement.
+The cross-domain reviewer must be a competent expert in their own domain
+capable of high-level reasoning, regardless of unfamiliarity with the
+target domain’s specifics. The variant tests whether <em>expert</em>
+reasoning technique transfers across domains, not whether any outside
+reviewer can engage with another field’s reasoning. The selection
+mechanism is also self-selecting in a way that affects how the results
+generalise. Cross-domain participation requires curiosity about other
+fields, willingness to engage with reasoning outside one’s primary
+expertise, and tolerance for cognitive friction with unfamiliar
+conventions. These dispositions are not random across the expert
+population. The variant’s results therefore generalise to a specific
+subpopulation of experts (those with cross-domain epistemic curiosity)
+rather than to the full expert population, and the variant’s effective
+size is bounded by the size of that subpopulation rather than by the
+pool of competent experts overall. This is not a defect: the schema’s
+<code>cannot_evaluate</code> value (§2.3) lets these reviewers register
+honest abstention on verdicts they cannot competently evaluate, which is
+the correct treatment when the variant’s premise (transfer of reasoning
+technique, not of domain knowledge) is taken seriously.</p>
 <h3 id="disclosure-reluctance-and-meta-confidence-calibration">§9.8
 Disclosure Reluctance and Meta-Confidence Calibration</h3>
 <p>Failure mode 7 (§2.4) identifies disclosure reluctance as a measured
@@ -4520,6 +4894,81 @@ structures in parallel, and examining the relationship between
 disclosure reluctance and other forms of professional anxiety. That
 fuller empirical investigation is beyond the scope of the current
 paper.</p>
+<h3
+id="sft-volume-threshold-and-out-of-distribution-generalisation">§9.9
+SFT Volume Threshold and Out-of-Distribution Generalisation</h3>
+<p>The paper’s primary integration recommendation (§3.2) is SFT on
+contested items. The cost argument (§10) rests on the claim that small
+volumes of high-quality RAO-derived demonstrations produce meaningful
+calibration improvement. The volume threshold at which this holds is an
+empirical question the literature already addresses in adjacent
+regimes.</p>
+<p>Chen et al. (2025) fine-tuned Llama3-8B and GPT-4o-mini on 300
+input-output pairs targeting sycophantic compliance with illogical
+medical requests. The fine-tuned models achieved 100% rejection rates on
+out-of-distribution cancer drugs (79% with correct reasoning) versus a
+12% baseline, generalised across unrelated domains (singers, writers,
+geography) not in the training data, and showed negligible degradation
+on ten general capability benchmarks. Wang et al. (ICLR 2026) reports
+that a few hundred benign samples efficiently restore alignment in
+emergently misaligned models. Both results indicate that the volume
+threshold for behavioural change through SFT, with capability
+preservation and out-of-distribution generalisation, is in the low
+hundreds for adjacent behavioural targets.</p>
+<p><strong>Prediction:</strong> An SFT set of 200–500 RAO-derived
+demonstrations in a single domain, applied to a base model, produces
+measurable calibration improvement on held-out contested items in that
+domain (operationalisation: &gt;20 percentage point reduction in
+confident-response rate on items the expert pool rated as
+high-<code>consensus_difficulty</code>), with generalisation to
+contested items in related domains not in the training set
+(operationalisation: &gt;10 percentage point reduction in the same
+metric for out-of-domain contested items), and no measurable degradation
+on standard general capability benchmarks (Alpaca-Eval2, ARC, MMLU,
+GPQA, TruthfulQA).</p>
+<p>The prediction’s volume range is calibrated to Chen et al.’s 300-pair
+result and Wang et al.’s “few hundred” observation. The
+operationalisation thresholds are conservative given the cited effect
+sizes: Chen et al. observed shifts from 12% to 100% rejection rates on
+OOD items, an 88 percentage point change. A 20-point in-domain and
+10-point out-of-domain shift for contested-judgment SFT would be
+substantially smaller than the effects observed for sycophancy SFT,
+reflecting that contested expert judgment is a harder behavioural target
+than illogical-request rejection. The capability-preservation component
+is direct: Chen et al.’s fine-tuned models showed no degradation across
+ten benchmarks, and the RAO-SFT regime uses similar volumes.</p>
+<p><strong>Falsifier:</strong> Three distinguishable failure patterns.
+First, if 200–500 RAO demonstrations produce negligible calibration
+improvement on in-domain contested items, the prediction fails at its
+core claim. The SFT path would require substantially more data than the
+cost argument assumes. Second, if in-domain improvement occurs but fails
+to transfer to out-of-domain contested items, the §9.7 cross-domain
+reasoning transfer hypothesis is falsified for the SFT regime (the model
+learns domain-specific calibration patterns but not a transferable
+reasoning technique). The RAO corpus would require per-domain investment
+at larger scale. Third, if calibration improves but general capability
+degrades measurably, the SFT regime at this volume introduces an
+unfavourable tradeoff. The RAO would need re-integration via a method
+that does not require modifying the base model’s general behaviour.</p>
+<p><strong>Cost implication.</strong> At typical expert annotation rates
+($40–100 per RAO including Phase 1, Phase 2 cross-review, and metadata
+assembly), 200–500 RAOs cost $8,000–50,000 per domain. The fine-tuning
+compute cost is negligible by comparison: Chen et al. reports under $10
+cloud compute for Llama3-8B fine-tuning on 300 examples, and OpenAI API
+fine-tuning on 300 pairs is similarly cheap. The full cost of a
+domain-targeted SFT intervention, if the prediction holds, is dominated
+by annotation. The cost inversion argument in §10.3 becomes concrete:
+$50,000 of RAO annotation for measurable behavioural improvement on
+high-stakes contested domains is a small fraction of typical
+alignment-training budgets for frontier models.</p>
+<p><strong>Scope note.</strong> The prediction targets single-domain SFT
+at the volume threshold suggested by adjacent-regime literature. It does
+not predict the optimal volume, the optimal RAO-to-demonstration
+mapping, or the scaling behaviour across domains. It predicts a regime
+in which the pipeline’s cost-benefit claim can be tested with existing
+infrastructure (fine-tuning APIs, standard capability benchmarks) and
+modest annotation investment. A full characterisation of SFT scaling on
+RAO-derived data is beyond the current paper’s scope.</p>
 <hr />
 <h2 id="cost-analysis" data-audience="annotation">§10 Cost Analysis</h2>
 <p>The proposed pipeline is more expensive per annotation than current
@@ -4684,7 +5133,7 @@ the business model.</p>
 <p>Regulated markets are the natural initial targets: medical AI, legal
 AI, financial services, pharmaceutical, defence. These domains share
 characteristics that make the pipeline’s value proposition strongest.
-Accountability is not an externality; it is a compliance cost that the
+Accountability is not an externality, it is a compliance cost that the
 business already bears. Legal AI is already a live demonstration of the
 pattern: commercial vendors making strong quality claims, independent
 empirical evaluation documenting significant gaps (Magesh et al. 2024,
@@ -4705,6 +5154,30 @@ annotation transparency, and the pipeline produces it. Liability for
 confident-but-wrong model outputs is concrete and measurable. Expert
 annotators are already available because the domains already employ the
 professionals whose judgment the pipeline needs.</p>
+<p>The cross-domain landscape is treated more thoroughly in The Tunnel
+Pipeline (Phan 2026h), Paper 3 in The Training Landscape series (this
+paper is Paper 2). Tunnel Pipeline §10.2 extends the market-pattern
+reframe across six domains (healthcare, law, software engineering,
+employment, finance, psychiatry), documenting externalised verification
+costs, retraining and remediation costs, and cases where the cost has
+become institutionally visible (litigation, regulatory action,
+sanctions, deaths). The cross-domain extension applies the structural
+cost-externalisation argument that this paper develops at the medical-AI
+and legal-AI scale.</p>
+<p>The two papers are mutually informing rather than redundant. This
+paper specifies the annotation-layer methodology and develops the
+three-grounding-source argument for training-signal preservation. Tunnel
+Pipeline generalises into five conditions (Preservation, Adequacy,
+Reproducibility, Independence, Accountability) that any judgment-step
+pipeline must satisfy, with the RAO as the reference implementation of
+Preservation at the annotation layer (Tunnel Pipeline §13). Readers who
+want the cross-domain market-pattern treatment, the structural cost
+externalisation argument, or the generalised five-condition framework
+should consult that paper alongside this one. The argumentative
+division: this paper makes the case for richer annotation; Tunnel
+Pipeline makes the case for the structural conditions richer annotation
+satisfies, and how those conditions generalise across pipeline types
+beyond annotation.</p>
 <p>The cost premium for the pipeline is small relative to the compliance
 budgets of these industries. A pharmaceutical company spending tens of
 millions on clinical trials is likely to find $180,000 instead of
@@ -4843,6 +5316,60 @@ board-certified psychiatrists with diverse clinical frameworks. Minimum
 200 items per round, with at least 3 rounds to test longitudinal
 effects. Asynchronous, remote, using the platform architecture described
 in §2.2.</p>
+<p>The 5-annotator recommendation is calibrated against converging
+empirical findings on the diminishing returns of additional annotators.
+Snow et al. (2008) demonstrated that approximately four non-expert
+annotators per item approximate single-expert annotation quality across
+five NLP tasks (affect recognition, word similarity, recognising textual
+entailment, event temporal ordering, and word sense disambiguation).
+Sheng, Provost, and Ipeirotis (2008) developed the formal analysis of
+when adding labellers stops improving aggregate quality, showing that
+selective relabelling reaches diminishing returns at modest counts.
+Nowak and Rüger (2010) extended these results to multi-label image
+annotation, finding that majority vote across multiple non-expert
+annotators reaches expert-level agreement at moderate sample sizes. The
+convergence across these studies sets 3 as the empirical minimum for
+crowdsourced labelling and 5 as the practical ceiling beyond which
+additional annotators yield diminishing returns. Expert annotation
+literature is thinner because most expert protocols use 2–3 annotators
+with adjudication, but adjudication is precisely the consensus-collapse
+step the RAO is designed to avoid. The recommendation of 5 (rather than
+3) is justified by two pipeline-specific considerations: the
+cross-review architecture (§2.2) requires each annotator to engage with
+multiple peer perspectives, and the <code>cannot_evaluate</code> field
+(§2.3) means some annotators will appropriately abstain on items outside
+their sub-specialty. With expected abstentions, the effective evaluator
+count on any given item may drop to 3–4 even when 5 are nominally
+assigned.</p>
+<p>The empirical literature was developed under binary annotation. The
+pipeline’s three-value cross-review (§2.3) increases the resolution
+required to estimate the disagreement distribution well, which
+information-theoretic reasoning makes precise. Estimating a categorical
+distribution over K outcomes requires more samples than estimating a
+Bernoulli distribution: the standard error of each component scales as
+1/√n, but the number of free parameters grows from 1 (binary) to K-1, so
+the joint estimation cost grows superlinearly. With 3 annotators on a
+3-value scale, the support of the empirical distribution is smaller than
+the support of the latent distribution we are trying to estimate (3
+annotators can produce at most 3 distinct count combinations of
+agree/disagree/abstain that have non-trivial structure). With 5
+annotators, that support expands to 21 combinations; with 7, to 36. The
+Data Processing Inequality (developed in the Tunnel Pipeline paper, Phan
+2026h, as the formal ground for the preservation condition) applies here
+at the annotation layer: no downstream processing can recover
+information about the latent disagreement distribution that the
+annotation step did not preserve. If the annotation step has fewer
+samples than the support of the latent distribution requires, the
+cross-review step inherits a degraded signal regardless of how it
+processes that signal. The 5-annotator recommendation should therefore
+be read as a floor calibrated against the binary literature, with
+three-value semantics suggesting a preferred ceiling closer to 7 in
+heavily contested or sub-specialty-laden domains. The literature does
+not yet provide strong evidence for the exact threshold. Recruiting 5
+willing competent experts is already demanding, making this a practical
+constraint that becomes binding for most domains. The cost-quality
+tradeoff favours the lower end as a starting point, with empirical
+testing as the path to higher counts where they pay.</p>
 <p>If feasible, include a control pool of domain experts who have not
 used AI tools in their professional practice. This establishes a
 baseline for reasoning patterns uninfluenced by AI interaction, allowing
@@ -5105,6 +5632,11 @@ Conference on Fairness, Accountability, and Transparency (FAccT
 <p>Chou, Y.-L. &amp; Lee, D. (2019). Learning from soft labels with
 uncertainty-aware annotation. <em>Proceedings of the AAAI Conference on
 Artificial Intelligence</em>.</p>
+<p>Chen, S., Gao, M., Sasse, K., Hartvigsen, T., Anthony, B., Fan, L.,
+Aerts, H., Gallifant, J., &amp; Bitterman, D. S. (2025). When
+helpfulness backfires: LLMs and the risk of false medical information
+due to sycophantic behavior. <em>npj Digital Medicine</em>, 8, 605.
+https://doi.org/10.1038/s41746-025-02008-z</p>
 <p>Cheng, M., Lee, C., Khadpe, P., Yu, S., Han, D., &amp; Jurafsky, D.
 (2026). Sycophantic AI decreases prosocial intentions and promotes
 dependence. <em>Science</em>, 391, eaec8352.</p>
@@ -5141,6 +5673,10 @@ Investigating reward-tampering in large language models.
 S., Adeshina, S., &amp; Koyejo, S. (2026). Consensus is not
 verification: Why crowd wisdom strategies fail for LLM truthfulness.
 <em>arXiv:2603.06612</em> (preprint, not yet peer-reviewed).</p>
+<p>Deschênes, M.-F., Maheu-Cadotte, M.-A., Fontaine, G., &amp; Dionne,
+É. (2023). Scoring methods in script concordance tests: An exploratory
+psychometric study. <em>Journal of Nursing Education</em>, 62(10),
+549–555. DOI: 10.3928/01484834-20230815-05.</p>
 <p>Dohmatob, E., Feng, Y., &amp; Mania, H. (2025). Strong model
 collapse. <em>ICLR 2025</em> (Spotlight).</p>
 <p>ECRI (2026). 2026 Health Technology Hazards Report. ECRI Institute,
@@ -5245,6 +5781,14 @@ thinking about everyday-life events. <em>American Psychologist</em>,
 <p>Lichtenstein, S. &amp; Fischhoff, B. (1980). Training for
 calibration. <em>Organizational Behavior and Human Performance</em>,
 26(2), 149–171.</p>
+<p>Lineberry, M., Kreiter, C. D., &amp; Bordage, G. (2013). Threats to
+validity in the use and interpretation of script concordance test
+scores. <em>Medical Education</em>, 47(12), 1175–1183. DOI:
+10.1111/medu.12283.</p>
+<p>Lubarsky, S., Charlin, B., Cook, D. A., Chalk, C., &amp; van der
+Vleuten, C. P. M. (2011). Script concordance testing: a review of
+published validity evidence. <em>Medical Education</em>, 45(4), 329–338.
+DOI: 10.1111/j.1365-2923.2010.03863.x.</p>
 <p>Lord, C. G., Lepper, M. R., &amp; Preston, E. (1984). Considering the
 opposite: A corrective strategy for social judgment. <em>Journal of
 Personality and Social Psychology</em>, 47(6), 1231–1243.</p>
@@ -5262,11 +5806,19 @@ Stanford RegLab preregistered empirical evaluation).</p>
 the peer review process for grant applications: Reliability, validity,
 bias, and generalizability. <em>American Psychologist</em>, 63(3),
 160–168.</p>
+<p>McCoy, L. G., Sagar, N., Bacchi, S., Fong, J. M. N., Tan, N. C. K.,
+&amp; Rodman, A. (2025). Assessment of Large Language Models in Clinical
+Reasoning: A Novel Benchmarking Study. <em>NEJM AI</em>, 2(10). DOI:
+10.1056/AIdbp2500120.</p>
 <p>Nathan, M. J. &amp; Petrosino, A. (2003). Expert blind spot among
 preservice teachers. <em>American Educational Research Journal</em>,
 40(4), 905–928.</p>
 <p>Nisbett, R. E., Fong, G. T., Lehman, D. R., &amp; Cheng, P. W.
 (1987). Teaching reasoning. <em>Science</em>, 238(4827), 625–631.</p>
+<p>Nowak, S. &amp; Rüger, S. (2010). How reliable are annotations via
+crowdsourcing? A study about inter-annotator agreement for multi-label
+image annotation. <em>Proceedings of the international conference on
+Multimedia information retrieval (MIR ’10)</em>, 557–566.</p>
 <p>Nuyts, J. (2001). <em>Epistemic modality, language, and
 conceptualization.</em> John Benjamins.</p>
 <p>Omar, M., et al. (2026). Multi-model assurance analysis showing large
@@ -5288,6 +5840,9 @@ and the subsequent <em>Cureus</em> retraction.)</p>
 <p>Ouyang, L., Wu, J., Jiang, X., Almeida, D., Wainwright, C. L.,
 Mishkin, P., … &amp; Lowe, R. (2022). Training language models to follow
 instructions with human feedback. <em>NeurIPS 2022</em>.</p>
+<p>Perdrix, Y., Pinsault, N., &amp; Dionne, E. (2026). Script
+concordance test issues, the trail of expert calibration. <em>BMC
+Medical Education</em>, 26, 390. DOI: 10.1186/s12909-026-08732-8.</p>
 <p>Perrigo, B. (2023). Exclusive: OpenAI used Kenyan workers on less
 than $2 per hour to make ChatGPT less toxic. <em>TIME</em>, January 18,
 2023.</p>
@@ -5297,10 +5852,16 @@ than $2 per hour to make ChatGPT less toxic. <em>TIME</em>, January 18,
 10.5281/zenodo.19365543 (P5). CC BY 4.0.</p>
 <p>Phan, I. (2026g). Uncertainty Collapse. DOI: 10.5281/zenodo.19482051.
 CC BY 4.0.</p>
+<p>Phan, I. (2026h). The Tunnel Pipeline: What Gets Lost, What It Costs,
+and the Case for PARIA. DOI: 10.5281/zenodo.19804186. CC BY 4.0.</p>
 <p>Pier, E. L., Brauer, M., Filut, A., Kaatz, A., Raclaw, J., Nathan, M.
 J., Ford, C. E., &amp; Carnes, M. (2018). Low agreement among reviewers
 evaluating the same NIH grant applications. <em>Proceedings of the
 National Academy of Sciences</em>, 115(12), 2952–2957.</p>
+<p>Prade, T. &amp; Samwald, M. (2026). Benchmarking Clinical Reasoning
+in Large Language Models: A Comparative Assessment Study.
+<em>medRxiv</em> preprint, 2026.03.13.26347597. DOI:
+10.64898/2026.03.13.26347597. (Not yet peer-reviewed.)</p>
 <p>Plank, B. (2022). The “problem” of human label variation: On ground
 truth in data, modeling and evaluation. <em>EMNLP 2022</em>.</p>
 <p>Price, P. C. &amp; Stone, E. R. (2004). Intuitive evaluation of
@@ -5326,6 +5887,10 @@ instruction tuning guide. <em>Second Talent</em>, January 2026.</p>
 <p>Shah, C., Bender, E. M., &amp; Hovy, E. (2026). The synthetic web:
 Search engines as vectors of misinformation.
 <em>arXiv:2603.00801</em>.</p>
+<p>Sheng, V. S., Provost, F., &amp; Ipeirotis, P. G. (2008). Get another
+label? Improving data quality and data mining using multiple, noisy
+labelers. <em>Proceedings of the 14th ACM SIGKDD International
+Conference on Knowledge Discovery and Data Mining</em>, 614–622.</p>
 <p>Singh, A., Tiwari, A., Hasanbeig, H., &amp; Gupta, P. (2025).
 Soft-label training preserves epistemic uncertainty.
 <em>arXiv:2511.14117</em>.</p>
@@ -5429,13 +5994,15 @@ analysis, the downstream applications, and the testable predictions. If
 your user works in annotation science or workforce ethics, §5 through §8
 and §10 are the priority: the evidence for information destruction, the
 expert valuation argument, and the cost analysis. If your user works in
-cognitive science or education, §9 is the priority: eight predictions
+cognitive science or education, §9 is the priority: nine predictions
 with named falsifiers grounded in established literature, including a
 cross-domain reasoning transfer prediction (§9.7) with a novel design
-variant and an expert-disclosure calibration prediction (§9.8) grounded
-in the Physicians’ Reaction to Uncertainty literature. §11 connects to
-the author’s prior work (the Confidence Curriculum series and
-Uncertainty Collapse) and is not a dependency.</p>
+variant, an expert-disclosure calibration prediction (§9.8) grounded in
+the Physicians’ Reaction to Uncertainty literature, and an SFT volume
+threshold prediction (§9.9) that makes the pipeline’s cost-benefit claim
+quantitatively testable. §11 connects to the author’s prior work (the
+Confidence Curriculum series and Uncertainty Collapse) and is not a
+dependency.</p>
 <p><strong>What the paper does not claim.</strong> The pipeline is not
 empirically tested. All predictions are theoretical. The paper is a
 design proposal and a collaboration invitation, not a validated
@@ -5502,8 +6069,9 @@ Applications</a>
 Destruction Problem</a>
 <a href="#the-objectivity-ladder" class="toc-h3" onclick="closeToc()">§5.1 The Objectivity Ladder</a>
 <a href="#disagreement-rates" class="toc-h3" onclick="closeToc()">§5.2 Disagreement Rates</a>
-<a href="#worked-examples-psychiatry-and-scientific-peer-review" class="toc-h3" onclick="closeToc()">§5.3
-Worked Examples: Psychiatry and Scientific Peer Review</a>
+<a href="#worked-examples-psychiatry-scientific-peer-review-and-clinical-reasoning-evaluation" class="toc-h3" onclick="closeToc()">§5.3
+Worked Examples: Psychiatry, Scientific Peer Review, and Clinical
+Reasoning Evaluation</a>
 <a href="#current-pipeline-structure" class="toc-h3" onclick="closeToc()">§5.4 Current Pipeline Structure</a>
 <a href="#the-motivation-problem" class="toc-h3" onclick="closeToc()">§5.5 The Motivation Problem</a>
 <a href="#the-resource-allocation-problem" class="toc-h3" onclick="closeToc()">§5.6 The Resource Allocation
@@ -5546,6 +6114,8 @@ Epistemic Markers in Discourse: The Taxonomy as a Linguistic Test</a>
 Transfer</a>
 <a href="#disclosure-reluctance-and-meta-confidence-calibration" class="toc-h3" onclick="closeToc()">§9.8
 Disclosure Reluctance and Meta-Confidence Calibration</a>
+<a href="#sft-volume-threshold-and-out-of-distribution-generalisation" class="toc-h3" onclick="closeToc()">§9.9
+SFT Volume Threshold and Out-of-Distribution Generalisation</a>
 <a href="#cost-analysis" class="toc-h2 toc-audience-annotation" onclick="closeToc()">§10 Cost Analysis</a>
 <a href="#current-costs" class="toc-h3" onclick="closeToc()">§10.1 Current Costs</a>
 <a href="#proposed-pipeline-costs" class="toc-h3" onclick="closeToc()">§10.2 Proposed Pipeline Costs</a>
