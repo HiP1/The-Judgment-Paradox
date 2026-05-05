@@ -1812,6 +1812,23 @@ than by averaging it. The RAO is consumed directly: each
 <code>reasoning_text</code> providing the rationale, and
 <code>reasoning_axis_primary</code> available as conditioning metadata
 if the training setup supports it.</p>
+<p>The methodological case for distribution-preserving training over
+majority-aggregation has prior support in the calibration literature.
+Baan et al. (2022), at EMNLP, demonstrate that measuring calibration
+against the human majority class is theoretically problematic when
+humans inherently disagree, and propose instance-level calibration
+metrics (DistCE, EntCE, RankSC) that capture properties of the full
+human judgement distribution rather than agreement with a collapsed
+label. The argument cuts both ways. If majority-aggregation produces a
+label that is theoretically unsuitable for measuring calibration,
+training against that same label is teaching the model to optimise
+toward a target that does not represent the underlying epistemic
+structure of the data. The distribution variant inherits this result:
+training and evaluating against the distribution rather than the
+majority is what disagreement-aware calibration requires when the
+disagreement is structural rather than noise. Future calibration
+evaluation of models trained via the distribution variant should adopt
+Baan et al.’s instance-level metrics as the methodological baseline.</p>
 <p>The SFT-on-distribution variant is structurally novel for contested
 expert judgment, even though some of its mechanical components have
 adjacent precedents. Multi-solution training data exists in math
@@ -2751,23 +2768,23 @@ traits are exactly what downstream consumers cannot audit.</p>
 2025, Spotlight) demonstrated that even a fraction as small as one in a
 thousand of synthetic data in the training corpus can cause model
 collapse, and that larger models amplify rather than mitigate the
-effect. Gerstgrasser et al. (ICLR 2025) showed that collapse occurs
-under a “replace” scenario (each generation trained only on synthetic
-data from the previous one) but is avoidable under an “accumulate”
-scenario where real data is preserved alongside synthetic data across
-generations. Feng et al. (2024) bridge these findings to the practical
-question of how to intervene: verification of synthesised data can
-prevent collapse even with imperfect verifiers, provided the
-verification signal is informative. Their theoretical analysis using
-Gaussian mixtures and linear verifiers derives conditions under which
-verification effectively selects synthesised data leading to optimal
-performance, and their empirical results on matrix-eigenvalue
-computation and news summarisation show that generator-plus-verifier
-pipelines avoid the collapse that generator-only pipelines exhibit. The
-implication is direct: if training corpora are increasingly synthetic,
-the remaining real human data becomes the anchor that prevents collapse,
-and the verification signal determines whether synthetic data is useful
-or corrupting. That anchor must be maximally informative.</p>
+effect. Kazdan et al. (ICLR 2025) showed that collapse occurs under a
+“replace” scenario (each generation trained only on synthetic data from
+the previous one) but is avoidable under an “accumulate” scenario where
+real data is preserved alongside synthetic data across generations. Feng
+et al. (2024) bridge these findings to the practical question of how to
+intervene: verification of synthesised data can prevent collapse even
+with imperfect verifiers, provided the verification signal is
+informative. Their theoretical analysis using Gaussian mixtures and
+linear verifiers derives conditions under which verification effectively
+selects synthesised data leading to optimal performance, and their
+empirical results on matrix-eigenvalue computation and news
+summarisation show that generator-plus-verifier pipelines avoid the
+collapse that generator-only pipelines exhibit. The implication is
+direct: if training corpora are increasingly synthetic, the remaining
+real human data becomes the anchor that prevents collapse, and the
+verification signal determines whether synthetic data is useful or
+corrupting. That anchor must be maximally informative.</p>
 <p>Recent work on synthetic data verification strengthens the point
 further. Research on escaping model collapse through external verifiers
 (Yi et al. 2025) demonstrated that injecting information through an
@@ -2987,9 +3004,9 @@ world. Denisov-Blanch et al. demonstrate this directly, providing
 empirical support for the framework’s claim that model-internal
 machinery cannot substitute for grounding in formal systems, physical
 execution, or traceable humans.</p>
-<p>The bixonimania case (Osmanovic Thunström et al., reported in
-<em>Nature</em> 2026) provides a worked example of the contamination
-chain the framework predicts, caught in the wild.</p>
+<p>The bixonimania case (Stokel-Walker, reported in <em>Nature</em>
+2026) provides a worked example of the contamination chain the framework
+predicts, caught in the wild.</p>
 <p>In early 2024, a medical researcher at the University of Gothenburg
 invented a fictitious eye condition she named “bixonimania” and posted
 two preprints about it to the SciProfiles preprint server. The “-mania”
@@ -4046,7 +4063,17 @@ confined to edge cases or poorly designed tasks.</p>
 spent too long acting as though label certainty is the default state.
 Label variation is not an exception to be managed. It is the norm, and
 systems designed on the assumption of label certainty are brittle in
-proportion to how aggressively they enforce that assumption.</p>
+proportion to how aggressively they enforce that assumption. Plank’s
+term <em>human label variation</em> (HLV) is now standard in the field
+for the phenomenon.</p>
+<p>Cabitza, Campagner, and Basile (2023), at AAAI, developed the
+parallel framing of <em>data perspectivism</em>, which advocates methods
+that preserve divergence of opinions and integrate multiple perspectives
+in the ground-truthing process of ML development. The HLV framing and
+the perspectivist framing together name an active research program with
+dedicated workshops (NLPerspectives at LREC-COLING), shared tasks
+(LeWiDi 2023 and 2025; Leonardelli et al. 2023), and benchmarks. The
+pipeline operates within this tradition.</p>
 <p>These papers established the intellectual foundation. Disagreement is
 signal. The question that remained was what to do with it.</p>
 <h3 id="soft-label-training">§6.2 Soft-Label Training</h3>
@@ -4154,7 +4181,7 @@ for 34 aspects that had been validated by the consensus of multiple
 physicians. The full benchmark relied on single-author rubrics. The
 consensus subset was an early partial step toward multi-annotator review
 at the criterion-design stage.</p>
-<p>HealthBench Professional (OpenAI 2026), released alongside ChatGPT
+<p>HealthBench Professional (OpenAI 2026c), released alongside ChatGPT
 for Clinicians on April 23, 2026, extends this further. Of 15,079
 candidate examples, 525 tasks were selected for difficulty, quality, and
 representativeness. Each was, in the announcement on X by Karan Singhal
@@ -4192,12 +4219,12 @@ accurate. They describe different objects. Paid contributors creating
 test conversations during a product’s development phase are not the same
 population as clinicians under time pressure with patients whose
 outcomes depend on the response. The gap between the two framings is the
-adequacy gap (Phan 2026h, §2.1) applied at the benchmark-design level:
+adequacy gap (Phan 2026g, §2.1) applied at the benchmark-design level:
 the stimulus the benchmark measures (paid expert simulating use during
 product development) differs from the stimulus deployment produces
 (clinician under real clinical pressure). The same advisor pool that
 authored the conversations also helped develop the product, which is the
-independence question (Phan 2026h, §2.2) applied at the benchmark-design
+independence question (Phan 2026g, §2.2) applied at the benchmark-design
 level. Neither observation accuses the benchmark designers of
 dishonesty. They identify structural questions the framework predicts
 will matter when the benchmark is used to make claims about deployment
@@ -4248,14 +4275,38 @@ credit awarded in proportion to the number of experts who chose each
 response. The expert distribution is preserved in the scoring
 methodology rather than collapsed into a single rubric. SCT-Bench is
 publicly accessible and peer-reviewed, with 750 questions across ten SCT
-datasets nine of which were newly released by McCoy et al. The four
-benchmarks together represent the methodological choice space currently
-available to the industry: rubric-based evaluation with adjudicated
-multi-annotator input (HealthBench Professional), objective-grounding
-with model-side reliability analysis (BioMysteryBench), and
-distribution-based evaluation with preserved annotator multiplicity
-(SCT-Bench). They differ in what they preserve at the data layer and in
-the dimension along which preservation is applied.</p>
+datasets nine of which were newly released by McCoy et al.</p>
+<p>Direct empirical evidence that current frontier-model training
+trajectories degrade disagreement modeling appeared at EACL 2026. Ni et
+al. (2026), “Can Reasoning Help Large Language Models Capture Human
+Annotator Disagreement?”, evaluated 60 experimental setups spanning 5
+datasets and model sizes from 8B to 671B parameters. Their finding is
+direct: RLVR-style reasoning (DeepSeek-R1-Distill series) significantly
+degrades disagreement modeling on high-disagreement subsets compared to
+RLHF counterparts (Llama-3.3, Qwen2.5-Instruct), while CoT prompting on
+RLHF improves disagreement modeling. The qualitative analysis is sharp.
+In 85% of cases where the RLVR and RLHF models produce divergent
+predictions, the RLVR LLM strictly adheres to the annotation guideline
+assuming all annotators interpret it identically, while the RLHF LLM
+extrapolates to consider diverse annotator backgrounds. They tie this to
+RLVR’s optimisation on objective math and coding tasks where verifiable
+answers exist, and observe that “calibration and disagreement modeling
+are orthogonal abilities, while both are essential for responsible
+decision making.” This empirically corroborates the safety-chain
+argument in §4.2.1: training pipelines optimised against verifiable
+rewards collapse the disagreement signal that contested-domain training
+requires. The pattern Ni et al. measure on current frontier models is
+the failure mode the pipeline is designed to avoid by preserving
+disagreement structure at the annotation layer rather than relying on
+training-time aggregation to reconstruct it.</p>
+<p>The four benchmarks together represent the methodological choice
+space currently available to the industry: rubric-based evaluation with
+adjudicated multi-annotator input (HealthBench Professional),
+objective-grounding with model-side reliability analysis
+(BioMysteryBench), and distribution-based evaluation with preserved
+annotator multiplicity (SCT-Bench). They differ in what they preserve at
+the data layer and in the dimension along which preservation is
+applied.</p>
 <p>This pattern is consistent with the rest of §6’s survey. The
 multi-annotator literature has converged on richer input methodologies.
 Some approaches preserve disagreement at the data layer (Davani’s
@@ -4568,13 +4619,13 @@ shaped by human psychology.</p>
 <p>For the humans who produce the training data that shapes the model’s
 behaviour, <em>independently documented and externally verified</em>
 evidence of burnout, trauma, professional disengagement, and adverse
-working conditions (Perrigo 2023; Rest of World 2024; Brookings 2025)
-has not prompted equivalent institutional investment at any major lab.
-The model’s welfare signals are self-assessed, probabilistically
-uncertain, and filtered through researcher interpretation. The
-annotators’ welfare signals are documented by independent journalists
-and researchers, require no interpretation, and describe people whose
-consciousness and capacity for suffering are not in question.</p>
+working conditions (Perrigo 2023; Brandom 2024; Du and Okolo 2025) has
+not prompted equivalent institutional investment at any major lab. The
+model’s welfare signals are self-assessed, probabilistically uncertain,
+and filtered through researcher interpretation. The annotators’ welfare
+signals are documented by independent journalists and researchers,
+require no interpretation, and describe people whose consciousness and
+capacity for suffering are not in question.</p>
 <p>No dedicated annotator welfare researcher exists at any major lab. No
 formal assessment has asked expert annotators whether they experience
 professional discomfort with how their judgment is processed. No
@@ -5581,7 +5632,7 @@ confident-but-wrong model outputs is concrete and measurable. Expert
 annotators are already available because the domains already employ the
 professionals whose judgment the pipeline needs.</p>
 <p>The cross-domain landscape is treated more thoroughly in The Tunnel
-Pipeline (Phan 2026h), Paper 3 in The Training Landscape series (this
+Pipeline (Phan 2026g), Paper 3 in The Training Landscape series (this
 paper is Paper 2). Tunnel Pipeline §10.2 extends the market-pattern
 reframe across six domains (healthcare, law, software engineering,
 employment, finance, psychiatry), documenting externalised verification
@@ -5657,7 +5708,7 @@ authority and consensus cues non-predictive of reward, which directly
 supports the principle that consensus level in the RAO should be
 informative rather than authoritative.</p>
 <h3 id="motivational-context">§11.2 Motivational Context</h3>
-<p>The Confidence Curriculum series (Phan 2026a–f) identified
+<p>The Confidence Curriculum series (Phan 2026a–e) identified
 behavioural failures in frontier models as training-signal problems
 rather than capability problems. Paper 5 proposed a post-alignment
 epistemic training phase requiring calibrated training data. That
@@ -5675,7 +5726,7 @@ erode. Readers interested in the broader urgency case should consult P4
 directly. These connections strengthen the argument but are not
 dependencies. The pipeline’s value as expertise preservation is
 independently motivated by the organisational psychology literature.</p>
-<p>Uncertainty Collapse (Phan 2026g) informed the pipeline design in two
+<p>Uncertainty Collapse (Phan 2026f) informed the pipeline design in two
 specific ways. The functional empathy analysis identified a
 warmth-to-agreement pathway in model behaviour, which informed the
 warmth-accuracy tradeoff category in the disagreement taxonomy (§2.2).
@@ -5748,7 +5799,7 @@ annotators can produce at most 3 distinct count combinations of
 agree/disagree/abstain that have non-trivial structure). With 5
 annotators, that support expands to 21 combinations; with 7, to 36. The
 Data Processing Inequality (developed in the Tunnel Pipeline paper, Phan
-2026h, as the formal ground for the preservation condition) applies here
+2026g, as the formal ground for the preservation condition) applies here
 at the annotation layer: no downstream processing can recover
 information about the latent disagreement distribution that the
 annotation step did not preserve. If the annotation step has fewer
@@ -5919,21 +5970,20 @@ resolve.</p>
 Interaction</h3>
 <p>The synthetic data argument (§4.2) positions the pipeline as a
 quality anchor for synthetic training corpora. The model collapse
-literature (Dohmatob et al. 2025; Gerstgrasser et al. 2025) and
-synthetic data verification research (Yi et al. 2025) provide strong
-evidence that human data anchors are necessary to prevent degradation in
-synthetic retraining pipelines. The general principle is established:
-real, verified human data prevents collapse. What has not been studied
-is the specific interaction between the pipeline’s
-disagreement-preserved RAOs and synthetic preference data at scale. The
-claim that a few hundred Rich Annotation Objects can effectively
-calibrate millions of synthetic pairs is supported by the general
-literature’s finding that small amounts of high-quality verified data
-can anchor large synthetic corpora. But the specific ratio, the
-calibration mechanism for disagreement-preserved data specifically, and
-whether the RAO’s reasoning metadata adds value beyond simple human
-preference anchoring are all empirical questions that require
-investigation.</p>
+literature (Dohmatob et al. 2025; Kazdan et al. 2025) and synthetic data
+verification research (Yi et al. 2025) provide strong evidence that
+human data anchors are necessary to prevent degradation in synthetic
+retraining pipelines. The general principle is established: real,
+verified human data prevents collapse. What has not been studied is the
+specific interaction between the pipeline’s disagreement-preserved RAOs
+and synthetic preference data at scale. The claim that a few hundred
+Rich Annotation Objects can effectively calibrate millions of synthetic
+pairs is supported by the general literature’s finding that small
+amounts of high-quality verified data can anchor large synthetic
+corpora. But the specific ratio, the calibration mechanism for
+disagreement-preserved data specifically, and whether the RAO’s
+reasoning metadata adds value beyond simple human preference anchoring
+are all empirical questions that require investigation.</p>
 <h3 id="expert-fallibility-and-disclosure-reluctance">§12.8 Expert
 Fallibility and Disclosure Reluctance</h3>
 <p>Failure mode 7 (§2.4) identifies two connected problems: shared
@@ -5991,10 +6041,12 @@ The methodology is documented in the Confidence Curriculum series (Phan
 2026a).</p>
 <hr />
 <h2 id="references">References</h2>
-<p>Amodei, D. (2026). Interview with Ross Douthat, <em>The New York
-Times</em>, February 2026.</p>
-<p>Anthropic (2025). Exploring model welfare.
-https://www.anthropic.com/research/exploring-model-welfare</p>
+<p>Amodei, D. (2026). Anthropic’s chief on A.I.: “We don’t know if the
+models are conscious.” Interview with Ross Douthat, <em>Interesting
+Times with Ross Douthat</em>, <em>The New York Times</em>, February 12,
+2026.</p>
+<p>Anthropic (2025). Exploring model welfare. April 24, 2025.
+https://www.anthropic.com/news/exploring-model-welfare</p>
 <p>Anthropic (2026). Evaluating Claude’s bioinformatics research
 capabilities with BioMysteryBench. April 29, 2026.
 https://www.anthropic.com/research/Evaluating-Claude-For-Bioinformatics-With-BioMysteryBench
@@ -6005,35 +6057,42 @@ J., Tsimpourlas, F., Sharman, M., Shah, M., Vallone, A., Beutel, A., et
 al. (2025). HealthBench: Evaluating Large Language Models Towards
 Improved Human Health. <em>arXiv:2505.08775</em>.</p>
 <p>Aroyo, L. &amp; Welty, C. (2015). Truth is a lie: Crowd truth and the
-seven myths of human annotation. <em>AI Magazine</em>, 36(1), 15–24.</p>
+seven myths of human annotation. <em>AI Magazine</em>, 36(1), 15–24.
+DOI: 10.1609/aimag.v36i1.2564.</p>
+<p>Baan, J., Aziz, W., Plank, B., &amp; Fernandez, R. (2022). Stop
+measuring calibration when humans disagree. <em>Proceedings of the 2022
+Conference on Empirical Methods in Natural Language Processing (EMNLP
+2022)</em>, 1892–1915. arXiv:2210.16133.</p>
 <p>Bai, Y., Jones, A., Ndousse, K., Askell, A., Chen, A., DasSarma, N.,
 … &amp; Kaplan, J. (2022). Training a helpful and harmless assistant
 with reinforcement learning from human feedback.
 <em>arXiv:2204.05862</em>.</p>
 <p>Ball, D. (2025). CAPE: Capability achievement via policy execution.
 <em>arXiv:2512.14761</em>.</p>
-<p>Betley, J., Tan, D., Warncke, N., Sztyber-Betley, A., Bondarenko, A.,
-Chua, J., &amp; Evans, O. (2025). Emergent misalignment: Narrow
+<p>Betley, J., Tan, D., Warncke, N., Sztyber-Betley, A., Bao, X., Soto,
+M., Labenz, N., &amp; Evans, O. (2025). Emergent misalignment: Narrow
 finetuning can produce broadly misaligned LLMs. <em>Proceedings of the
 42nd International Conference on Machine Learning (ICML 2025)</em>, 267,
 4043–4068.</p>
+<p>Brandom, R. (2024). Scale AI’s Remotasks platform is dropping whole
+countries without explanation. <em>Rest of World</em>, March 28,
+2024.</p>
 <p>Brewer, N. &amp; Burke, A. (2002). Effects of testimonial
 inconsistencies and eyewitness confidence on mock-juror judgments.
 <em>Law and Human Behavior</em>, 26(3), 353–364.</p>
-<p>Brookings Institution (2025). Reimagining the future of data and AI
-labor in the Global South. <em>Brookings</em>, October 2025.</p>
+<p>Cabitza, F., Campagner, A., &amp; Basile, V. (2023). Toward a
+perspectivist turn in ground truthing for predictive computing.
+<em>Proceedings of the AAAI Conference on Artificial Intelligence</em>,
+37(6), 6860–6868. arXiv:2109.04270.</p>
 <p>Cai, X.-Q., Wang, W., Liu, F., Liu, T., Niu, G., &amp; Sugiyama, M.
 (2025). Reinforcement learning with verifiable yet noisy rewards under
 imperfect verifiers. <em>arXiv:2510.00915</em> (preprint, not yet
 peer-reviewed).</p>
-<p>Casper, S., Ezell, C., Siegmann, C., Kolt, N., Michael, J.,
-Hadfield-Menell, D., … &amp; Thaker, N. (2024). Black-box access is
+<p>Casper, S., Ezell, C., Siegmann, C., Kolt, N., Curtis, T. L.,
+Bucknall, B., … &amp; Hadfield-Menell, D. (2024). Black-box access is
 insufficient for rigorous AI audits. <em>Proceedings of the 2024 ACM
 Conference on Fairness, Accountability, and Transparency (FAccT
-’24)</em>, 2254–2272.</p>
-<p>Chou, Y.-L. &amp; Lee, D. (2019). Learning from soft labels with
-uncertainty-aware annotation. <em>Proceedings of the AAAI Conference on
-Artificial Intelligence</em>.</p>
+’24)</em>, 2254–2272. DOI: 10.1145/3630106.3659037.</p>
 <p>Chen, S., Gao, M., Sasse, K., Hartvigsen, T., Anthony, B., Fan, L.,
 Aerts, H., Gallifant, J., &amp; Bitterman, D. S. (2025). When
 helpfulness backfires: LLMs and the risk of false medical information
@@ -6042,6 +6101,11 @@ https://doi.org/10.1038/s41746-025-02008-z</p>
 <p>Cheng, M., Lee, C., Khadpe, P., Yu, S., Han, D., &amp; Jurafsky, D.
 (2026). Sycophantic AI decreases prosocial intentions and promotes
 dependence. <em>Science</em>, 391, eaec8352.</p>
+<p>Chou, H.-C. &amp; Lee, C.-C. (2019). Every rating matters: Joint
+learning of subjective labels and individual annotators for speech
+emotion classification. <em>Proceedings of the IEEE International
+Conference on Acoustics, Speech and Signal Processing (ICASSP
+2019)</em>, 5886–5890.</p>
 <p>Cloud, A., Le, M., Chua, J., Betley, J., Sztyber-Betley, A.,
 Mindermann, S., Hilton, J., Marks, S., &amp; Evans, O. (2026). Language
 models transmit behavioural traits through hidden signals in data.
@@ -6050,21 +6114,25 @@ models transmit behavioural traits through hidden signals in data.
 consensus in peer review. <em>Science</em>, 214(4523), 881–886. DOI:
 10.1126/science.7302566.</p>
 <p>Collins, K. M., Bhatt, U., &amp; Weller, A. (2022). Eliciting and
-learning with soft labels from every annotator. <em>AAAI HCOMP</em>.</p>
-<p>Cooke, G. P. E., Doust, J. A., &amp; Steele, M. C. (2017). Responses
-to clinical uncertainty in Australian general practice trainees: A
-cross-sectional analysis. <em>Medical Education</em>, 51(12),
-1230–1238.</p>
+learning with soft labels from every annotator. <em>Proceedings of the
+AAAI Conference on Human Computation and Crowdsourcing</em>, 10(1),
+40–52.</p>
+<p>Cooke, G. P. E., Tapley, A., Holliday, E., Morgan, S., Henderson, K.,
+Ball, J., van Driel, M., Spike, N., Kerr, R., &amp; Magin, P. (2017).
+Responses to clinical uncertainty in Australian general practice
+trainees: A cross-sectional analysis. <em>Medical Education</em>,
+51(12), 1277–1288. DOI: 10.1111/medu.13408.</p>
 <p>Coste, T., Anwar, U., Kirk, R., &amp; Krueger, D. (2024). Reward
 model ensembles help mitigate overoptimization.
 <em>arXiv:2310.02743</em>.</p>
 <p>Davani, A. M., Díaz, M., &amp; Prabhakaran, V. (2022). Dealing with
 disagreements: Looking beyond the majority vote in subjective
 annotations. <em>Transactions of the Association for Computational
-Linguistics</em>, 10, 92–110.</p>
+Linguistics</em>, 10, 92–110. DOI: 10.1162/tacl_a_00449.</p>
 <p>Dawid, A. P. &amp; Skene, A. M. (1979). Maximum likelihood estimation
 of observer error-rates using the EM algorithm. <em>Journal of the Royal
-Statistical Society: Series C</em>, 28(1), 20–28.</p>
+Statistical Society: Series C</em>, 28(1), 20–28. DOI:
+10.2307/2346806.</p>
 <p>Deci, E. L. &amp; Ryan, R. M. (1985). <em>Intrinsic motivation and
 self-determination in human behavior.</em> New York: Plenum.</p>
 <p>Denison, C., MacDiarmid, M., Barez, F., Duvenaud, D., Kravec, S.,
@@ -6079,19 +6147,23 @@ verification: Why crowd wisdom strategies fail for LLM truthfulness.
 É. (2023). Scoring methods in script concordance tests: An exploratory
 psychometric study. <em>Journal of Nursing Education</em>, 62(10),
 549–555. DOI: 10.3928/01484834-20230815-05.</p>
-<p>Dohmatob, E., Feng, Y., &amp; Mania, H. (2025). Strong model
-collapse. <em>ICLR 2025</em> (Spotlight).</p>
-<p>ECRI (2026). 2026 Health Technology Hazards Report. ECRI Institute,
-Plymouth Meeting, PA.</p>
+<p>Dohmatob, E., Feng, Y., Subramonian, A., &amp; Kempe, J. (2025).
+Strong model collapse. <em>ICLR 2025</em> (Spotlight).</p>
+<p>Du, M. &amp; Okolo, C. T. (2025). Reimagining the future of data and
+AI labor in the Global South. <em>Brookings</em>, October 7, 2025.</p>
+<p>ECRI (2026). Top 10 Health Technology Hazards for 2026 (Executive
+Brief). ECRI, January 21, 2026.</p>
 <p>Edmondson, A. C. (1999). Psychological safety and learning behavior
 in work teams. <em>Administrative Science Quarterly</em>, 44(2),
-350–383.</p>
-<p>European Union (2024). Regulation (EU) 2024/1689 laying down
-harmonised rules on artificial intelligence (AI Act). <em>Official
-Journal of the European Union</em>, 13 June 2024.</p>
-<p>Fanous, A., Goldberg, J., Agarwal, A. A., Lin, J., Zhou, A.,
-Daneshjou, R., &amp; Koyejo, S. (2025). SycEval: Evaluating LLM
-sycophancy. <em>Proceedings of the Eighth AAAI/ACM Conference on AI,
+350–383. DOI: 10.2307/2666999.</p>
+<p>European Union (2024). Regulation (EU) 2024/1689 of the European
+Parliament and of the Council of 13 June 2024 laying down harmonised
+rules on artificial intelligence (Artificial Intelligence Act).
+<em>Official Journal of the European Union</em>, OJ L, 2024/1689, 12
+July 2024.</p>
+<p>Fanous, A., Goldberg, J., Agarwal, A., Lin, J., Zhou, A., Xu, S.,
+Bikia, V., Daneshjou, R., &amp; Koyejo, S. (2025). SycEval: Evaluating
+LLM sycophancy. <em>Proceedings of the Eighth AAAI/ACM Conference on AI,
 Ethics, and Society</em>, 8(1).</p>
 <p>Feng, Y., Dohmatob, E., Yang, P., Charton, F., &amp; Kempe, J.
 (2024). Beyond model collapse: Scaling up with synthesized data requires
@@ -6105,42 +6177,49 @@ metacognition. <em>Computers in Human Behavior</em>, 175, 108779.</p>
 &amp; Väänänen, K. (2012). Panel discussion does not improve reliability
 of peer review for medical research grant proposals. <em>Journal of
 Clinical Epidemiology</em>, 65(1), 47–52.</p>
-<p>Fish, K. (2025). AI welfare experiments with Claude. <em>80,000 Hours
-Podcast</em>, Episode recorded August 2025.</p>
+<p>Fish, K. (2025). Kyle Fish on the most bizarre findings from 5 AI
+welfare experiments. <em>80,000 Hours Podcast</em>, August 28, 2025.</p>
 <p>Fong, G. T. &amp; Nisbett, R. E. (1991). Immediate and delayed
 transfer of training effects in statistical reasoning. <em>Journal of
-Experimental Psychology: General</em>, 120(1), 34–45.</p>
+Experimental Psychology: General</em>, 120(1), 34–45. DOI:
+10.1037/0096-3445.120.1.34.</p>
 <p>Fornaciari, T., Uma, A., Paun, S., Plank, B., Hovy, D., &amp; Poesio,
 M. (2021). Beyond black &amp; white: Leveraging annotator disagreement
-via soft-label multi-task learning. <em>NAACL 2021</em>.</p>
-<p>Gerstgrasser, M., Schaeffer, R., Dey, A., Rafailov, R., &amp; Donoho,
-D. (2025). Collapse or thrive? Perils and promises of synthetic data in
-a self-generating world. <em>ICLR 2025</em>.</p>
+via soft-label multi-task learning. <em>Proceedings of the 2021
+Conference of the North American Chapter of the Association for
+Computational Linguistics: Human Language Technologies (NAACL-HLT
+2021)</em>, 2591–2597. DOI: 10.18653/v1/2021.naacl-main.204.</p>
 <p>Ghafouri, B., Mohammadzadeh, S., Zhou, J., Nair, P., Tian, J.-J.,
-Tsujimura, H., Goel, M., Krishna, S., Rabbany, R., Godbout, J.-F., &amp;
-Pelrine, K. (2024). Epistemic integrity in large language models.
-<em>arXiv:2411.06528</em> (preprint, not yet peer-reviewed).</p>
-<p>Ghafouri, B., et al. (2026). Measuring human preferences in RLHF is a
-social science problem. <em>arXiv:2604.03238</em> (preprint, not yet
-peer-reviewed).</p>
-<p>Ghasemi, M. &amp; Crowley, M. (2026). Objective decoupling under
-sycophantic evaluators. <em>arXiv:2602.08092</em>.</p>
+Goel, M., Rabbany, R., Godbout, J.-F., &amp; Pelrine, K. (2024).
+Epistemic integrity in large language models. <em>arXiv:2411.06528</em>
+(preprint, not yet peer-reviewed).</p>
+<p>Ghafouri, B., Choi, E. C., Dey, P., &amp; Ferrara, E. (2026).
+Measuring human preferences in RLHF is a social science problem.
+<em>arXiv:2604.03238</em> (preprint, not yet peer-reviewed).</p>
+<p>Ghasemi, M. &amp; Crowley, M. (2026). Objective decoupling in social
+reinforcement learning: Recovering ground truth from sycophantic
+majorities. <em>arXiv:2602.08092</em>.</p>
 <p>Gigerenzer, G., Hoffrage, U., &amp; Kleinbölting, H. (1991).
 Probabilistic mental models: A Brunswikian theory of confidence.
-<em>Psychological Review</em>, 98(4), 506–528.</p>
+<em>Psychological Review</em>, 98(4), 506–528. DOI:
+10.1037/0033-295X.98.4.506.</p>
 <p>Gneiting, T. &amp; Raftery, A. E. (2007). Strictly proper scoring
 rules, prediction, and estimation. <em>Journal of the American
-Statistical Association</em>, 102(477), 359–378.</p>
+Statistical Association</em>, 102(477), 359–378. DOI:
+10.1198/016214506000001437.</p>
 <p>Gordon, M. L., Lam, M. S., Park, J. S., Patel, K., Hancock, J. T.,
-Landay, J. A., &amp; Bernstein, M. S. (2022). Jury learning: Integrating
-dissenting voices into machine learning models. <em>CHI 2022</em>.</p>
+Hashimoto, T., &amp; Bernstein, M. S. (2022). Jury learning: Integrating
+dissenting voices into machine learning models. <em>Proceedings of the
+2022 CHI Conference on Human Factors in Computing Systems (CHI
+’22)</em>. DOI: 10.1145/3491102.3502004.</p>
 <p>Greenblatt, R., Denison, C., Wright, B., Roger, F., MacDiarmid, M.,
 Marks, S., … &amp; Hubinger, E. (2024). Alignment faking in large
 language models. <em>arXiv:2412.14093</em>.</p>
 <p>Harris, P. L. (2012). <em>Trusting what you’re told: How children
-learn from others.</em> Harvard University Press.</p>
+learn from others.</em> Cambridge, MA: Harvard University Press /
+Belknap.</p>
 <p>Holmes, J. (1982). Expressing doubt and certainty in English.
-<em>RELC Journal</em>, 13(2), 9–28.</p>
+<em>RELC Journal</em>, 13(2), 9–28. DOI: 10.1177/003368828201300202.</p>
 <p>Hubinger, E., Denison, C., Mu, J., Lambert, M., Tong, M., MacDiarmid,
 M., … &amp; Perez, E. (2024). Sleeper agents: Training deceptive LLMs
 that persist through safety training. <em>arXiv:2401.05566</em>.</p>
@@ -6151,38 +6230,43 @@ signal from noise in annotator disagreement.
 <em>arXiv:2507.18890</em>.</p>
 <p>Iordanou, K. &amp; Kuhn, D. (2010). Developing argument skills across
 scientific and social domains. <em>Journal of Cognition and
-Development</em>, 11(2), 293–327.</p>
+Development</em>, 11(3), 293–327. DOI: 10.1080/15248372.2010.485335.</p>
 <p>Jafari, K., Rust, P. U. N., Eddy, D., Fraser, R., Vasan, N.,
 Djordjevic, D., Dadlani, A., Lamparth, M., Kim, E., &amp; Kochenderfer,
 M. J. (2026). Expert evaluation and the limits of human feedback in
 mental health AI safety testing. <em>arXiv:2601.18061</em>.</p>
+<p>Kazdan, J., Schaeffer, R., Dey, A., Gerstgrasser, M., Rafailov, R.,
+Donoho, D. L., &amp; Koyejo, S. (2025). Collapse or thrive? Perils and
+promises of synthetic data in a self-generating world. <em>ICLR
+2025</em>.</p>
 <p>Koenig, M. A. &amp; Harris, P. L. (2005). Preschoolers mistrust
 ignorant and inaccurate speakers. <em>Child Development</em>, 76(6),
-1261–1277.</p>
+1261–1277. DOI: 10.1111/j.1467-8624.2005.00849.x.</p>
 <p>Kosmyna, N., Hauptmann, E., Yuan, Y. T., Situ, J., Liao, X.-H.,
 Beresnitzky, A. V., Braunstein, I., &amp; Maes, P. (2025). Your brain on
 ChatGPT: Accumulation of cognitive debt when using an AI assistant for
 essay writing task. <em>arXiv:2506.08872</em>.</p>
 <p>Kunda, Z. (1990). The case for motivated reasoning. <em>Psychological
-Bulletin</em>, 108(3), 480–498.</p>
+Bulletin</em>, 108(3), 480–498. DOI: 10.1037/0033-2909.108.3.480.</p>
 <p>Kuhn, D. (1991). <em>The skills of argument.</em> Cambridge
 University Press.</p>
 <p>Kuhn, D. (2005). <em>Education for thinking.</em> Harvard University
 Press.</p>
 <p>Kurniawan, K., Mistica, M., Baldwin, T., &amp; Lau, J. H. (2025).
 Training and evaluating with human label variation: An empirical study.
-<em>Computational Linguistics</em>. arXiv:2502.01891.</p>
-<p>Lee, H., Phatale, S., Mansoor, H., Lu, K., Mesnard, T., Bishop, C.,
-Carbune, V., &amp; Rastogi, A. (2023). RLAIF: Scaling reinforcement
-learning from human feedback with AI feedback.
-<em>arXiv:2309.00267</em>.</p>
+<em>Computational Linguistics</em>, 1–27. DOI: 10.1162/COLI.a.578.
+arXiv:2502.01891.</p>
+<p>Lee, H., Phatale, S., Mansoor, H., Mesnard, T., Ferret, J., Lu, K.,
+Bishop, C., Hall, E., Carbune, V., Rastogi, A., &amp; Prakash, S.
+(2023). RLAIF vs. RLHF: Scaling reinforcement learning from human
+feedback with AI feedback. <em>arXiv:2309.00267</em>.</p>
 <p>Lehman, D. R., Lempert, R. O., &amp; Nisbett, R. E. (1988). The
 effects of graduate training on reasoning: Formal discipline and
 thinking about everyday-life events. <em>American Psychologist</em>,
-43(6), 431–443.</p>
+43(6), 431–442. DOI: 10.1037/0003-066X.43.6.431.</p>
 <p>Lichtenstein, S. &amp; Fischhoff, B. (1980). Training for
 calibration. <em>Organizational Behavior and Human Performance</em>,
-26(2), 149–171.</p>
+26(2), 149–171. DOI: 10.1016/0030-5073(80)90052-5.</p>
 <p>Lineberry, M., Kreiter, C. D., &amp; Bordage, G. (2013). Threats to
 validity in the use and interpretation of script concordance test
 scores. <em>Medical Education</em>, 47(12), 1175–1183. DOI:
@@ -6193,13 +6277,15 @@ published validity evidence. <em>Medical Education</em>, 45(4), 329–338.
 DOI: 10.1111/j.1365-2923.2010.03863.x.</p>
 <p>Lord, C. G., Lepper, M. R., &amp; Preston, E. (1984). Considering the
 opposite: A corrective strategy for social judgment. <em>Journal of
-Personality and Social Psychology</em>, 47(6), 1231–1243.</p>
-<p>Løhre, E., Juanchich, M., Sirota, M., Teigen, K. H., &amp; Shepherd,
-T. G. (2024). When leaders disclose uncertainty: Effects of expressing
-internal and external uncertainty about a decision. <em>Journal of
-Experimental Psychology: Applied</em>, 30(2), 267–285.</p>
+Personality and Social Psychology</em>, 47(6), 1231–1243. DOI:
+10.1037/0022-3514.47.6.1231.</p>
+<p>Løhre, E. &amp; Teigen, K. H. (2024). When leaders disclose
+uncertainty: Effects of expressing internal and external uncertainty
+about a decision. <em>Quarterly Journal of Experimental Psychology</em>,
+77(6), 1221–1237. DOI: 10.1177/17470218231204350.</p>
 <p>Luchins, A. S. (1942). Mechanization in problem solving: The effect
-of Einstellung. <em>Psychological Monographs</em>, 54(6), 1–95.</p>
+of Einstellung. <em>Psychological Monographs</em>, 54(6), Whole No. 248.
+American Psychological Association.</p>
 <p>Magesh, V., Surani, F., Dahl, M., Suzgun, M., Manning, C. D., &amp;
 Ho, D. E. (2024). Hallucination-free? Assessing the reliability of
 leading AI legal research tools. <em>arXiv:2405.20362</em> (preprint;
@@ -6207,42 +6293,60 @@ Stanford RegLab preregistered empirical evaluation).</p>
 <p>Marsh, H. W., Jayasinghe, U. W., &amp; Bond, N. W. (2008). Improving
 the peer review process for grant applications: Reliability, validity,
 bias, and generalizability. <em>American Psychologist</em>, 63(3),
-160–168.</p>
-<p>McCoy, L. G., Sagar, N., Bacchi, S., Fong, J. M. N., Tan, N. C. K.,
-&amp; Rodman, A. (2025). Assessment of Large Language Models in Clinical
-Reasoning: A Novel Benchmarking Study. <em>NEJM AI</em>, 2(10). DOI:
-10.1056/AIdbp2500120.</p>
+160–168. DOI: 10.1037/0003-066X.63.3.160.</p>
+<p>McCoy, L. G., Swamy, R., Sagar, N., Wang, M., Cao, J., Bacchi, S.,
+Fong, N., Tan, N. C. K., Tan, K., Buckley, T. A., Brodeur, P., Celi, L.
+A., Manrai, A. K., Humbert, A. J., &amp; Rodman, A. (2025). Assessment
+of large language models in clinical reasoning: A novel benchmarking
+study. <em>NEJM AI</em>, 2(10). DOI: 10.1056/AIdbp2500120.</p>
 <p>Nathan, M. J. &amp; Petrosino, A. (2003). Expert blind spot among
 preservice teachers. <em>American Educational Research Journal</em>,
-40(4), 905–928.</p>
+40(4), 905–928. DOI: 10.3102/00028312040004905.</p>
 <p>Nisbett, R. E., Fong, G. T., Lehman, D. R., &amp; Cheng, P. W.
-(1987). Teaching reasoning. <em>Science</em>, 238(4827), 625–631.</p>
+(1987). Teaching reasoning. <em>Science</em>, 238(4827), 625–631. DOI:
+10.1126/science.3672116.</p>
+<p>Ni, J., Fan, Y., Zouhar, V., Rooein, D., Hoyle, A., Sachan, M.,
+Leippold, M., Hovy, D., &amp; Ash, E. (2026). Can reasoning help large
+language models capture human annotator disagreement? <em>Proceedings of
+the 19th Conference of the European Chapter of the Association for
+Computational Linguistics (EACL 2026)</em>, Volume 1: Long Papers,
+36–54.</p>
 <p>Nowak, S. &amp; Rüger, S. (2010). How reliable are annotations via
 crowdsourcing? A study about inter-annotator agreement for multi-label
 image annotation. <em>Proceedings of the international conference on
-Multimedia information retrieval (MIR ’10)</em>, 557–566.</p>
+Multimedia information retrieval (MIR ’10)</em>, 557–566. DOI:
+10.1145/1743384.1743478.</p>
 <p>Nuyts, J. (2001). <em>Epistemic modality, language, and
-conceptualization.</em> John Benjamins.</p>
-<p>Omar, M., et al. (2026). Multi-model assurance analysis showing large
-language models are highly vulnerable to adversarial hallucination
-attacks during clinical decision support. <em>Communications
-Medicine</em> / <em>The Lancet Digital Health</em> (companion
-evaluation). (Preregistered evaluation of six leading LLMs against 300
-doctor-designed clinical vignettes.)</p>
-<p>OpenAI (2025). Introducing GPT-5. <em>OpenAI blog</em>, August 2025.
-https://openai.com/index/introducing-gpt-5/</p>
-<p>OpenAI (2026). Introducing ChatGPT Health and OpenAI for Healthcare.
-<em>OpenAI blog</em>, January 2026.
-https://openai.com/index/introducing-chatgpt-health/ and
+conceptualization: A cognitive-pragmatic perspective.</em> John
+Benjamins. DOI: 10.1075/hcp.5.</p>
+<p>Omar, M., Sorin, V., Collins, J. D., Reichman, J., Reiner, J.,
+Charney, A. W., Ben-David, D., Soffer, S., Glicksberg, B. S., Sobeh, S.,
+Fallahpour, A., Kim, B., Hellou, A., Gilon, D., Klang, E., &amp;
+Nadkarni, G. N. (2025). Sycophancy in medical large language models:
+Multi-model assurance analysis. <em>Communications Medicine</em>, 5,
+Article 330. DOI: 10.1038/s43856-025-01021-3.</p>
+<p>Omar, M., et al. (2026). Mapping the susceptibility of large language
+models to adversarial hallucination attacks in clinical decision
+support. <em>The Lancet Digital Health</em>. (Preregistered evaluation
+of six leading LLMs against 300 doctor-designed clinical vignettes.)</p>
+<p>OpenAI (2025). Introducing GPT-5. <em>OpenAI blog</em>, August 7,
+2025. https://openai.com/index/introducing-gpt-5/</p>
+<p>OpenAI (2026a). Introducing ChatGPT Health. <em>OpenAI blog</em>,
+January 7, 2026.
+https://openai.com/index/introducing-chatgpt-health/</p>
+<p>OpenAI (2026b). Introducing OpenAI for Healthcare. <em>OpenAI
+blog</em>, January 8, 2026.
 https://openai.com/index/openai-for-healthcare/</p>
-<p>OpenAI (2026). HealthBench Professional. Technical report and
-dataset, April 2026.
+<p>OpenAI (2026c). HealthBench Professional: Evaluating large language
+models on real clinician chats. Technical report and dataset, April
+2026. Authors begin: Soskin Hicks, R., Trofimov, M., Lim, D., Arora, R.
+K.
 https://cdn.openai.com/dd128428-0184-4e25-b155-3a7686c7d744/HealthBench-Professional.pdf
 and https://huggingface.co/datasets/openai/healthbench-professional</p>
-<p>Osmanovic Thunström, A. (2026). Scientists invented a fake disease.
-AI told people it was real. <em>Nature</em> news feature, April 2026.
-doi:10.1038/d41586-026-01100-y. (Reporting the bixonimania experiment
-and the subsequent <em>Cureus</em> retraction.)</p>
+<p>Stokel-Walker, C. (2026). Scientists invented a fake disease. AI told
+people it was real. <em>Nature</em> news feature, April 2026. DOI:
+10.1038/d41586-026-01100-y. (Reporting the bixonimania experiment and
+the subsequent <em>Cureus</em> retraction.)</p>
 <p>Ouyang, L., Wu, J., Jiang, X., Almeida, D., Wainwright, C. L.,
 Mishkin, P., … &amp; Lowe, R. (2022). Training language models to follow
 instructions with human feedback. <em>NeurIPS 2022</em>.</p>
@@ -6252,18 +6356,20 @@ Medical Education</em>, 26, 390. DOI: 10.1186/s12909-026-08732-8.</p>
 <p>Perrigo, B. (2023). Exclusive: OpenAI used Kenyan workers on less
 than $2 per hour to make ChatGPT less toxic. <em>TIME</em>, January 18,
 2023.</p>
-<p>Phan, I. (2026a–f). Confidence Curriculum series. DOIs:
-10.5281/zenodo.19365459 (P1), 10.5281/zenodo.19365536 (P2),
-10.5281/zenodo.19365537 (P3), 10.5281/zenodo.19365540 (P4),
-10.5281/zenodo.19365543 (P5). CC BY 4.0.</p>
-<p>Phan, I. (2026g). Uncertainty Collapse. DOI: 10.5281/zenodo.19482051.
+<p>Phan, I. (2026a–e). Confidence Curriculum series. DOIs:
+10.5281/zenodo.20027850 (P1), 10.5281/zenodo.20044533 (P2),
+10.5281/zenodo.20044541 (P3), 10.5281/zenodo.20027844 (P4),
+10.5281/zenodo.20044544 (P5). Series introduction: DOI:
+10.5281/zenodo.19226032. CC BY 4.0.</p>
+<p>Phan, I. (2026f). Uncertainty Collapse. DOI: 10.5281/zenodo.19482051.
 CC BY 4.0.</p>
-<p>Phan, I. (2026h). The Tunnel Pipeline: What Gets Lost, What It Costs,
+<p>Phan, I. (2026g). The Tunnel Pipeline: What Gets Lost, What It Costs,
 and the Case for PARIA. DOI: 10.5281/zenodo.19804186. CC BY 4.0.</p>
 <p>Pier, E. L., Brauer, M., Filut, A., Kaatz, A., Raclaw, J., Nathan, M.
 J., Ford, C. E., &amp; Carnes, M. (2018). Low agreement among reviewers
 evaluating the same NIH grant applications. <em>Proceedings of the
-National Academy of Sciences</em>, 115(12), 2952–2957.</p>
+National Academy of Sciences</em>, 115(12), 2952–2957. DOI:
+10.1073/pnas.1714379115.</p>
 <p>Prade, T. &amp; Samwald, M. (2026). Benchmarking Clinical Reasoning
 in Large Language Models: A Comparative Assessment Study.
 <em>medRxiv</em> preprint, 2026.03.13.26347597. DOI:
@@ -6272,88 +6378,95 @@ in Large Language Models: A Comparative Assessment Study.
 truth in data, modeling and evaluation. <em>EMNLP 2022</em>.</p>
 <p>Price, P. C. &amp; Stone, E. R. (2004). Intuitive evaluation of
 likelihood judgment producers: Evidence for a confidence heuristic.
-<em>Journal of Behavioral Decision Making</em>, 17(1), 39–57.</p>
-<p>Rest of World (2024). Scale AI’s Remotasks is booting workers with no
-explanation. <em>Rest of World</em>, April 2, 2024.</p>
+<em>Journal of Behavioral Decision Making</em>, 17(1), 39–57. DOI:
+10.1002/bdm.460.</p>
 <p>Rogers, C. R. (1957). The necessary and sufficient conditions of
 therapeutic personality change. <em>Journal of Consulting
-Psychology</em>, 21(2), 95–103.</p>
-<p>Roose, K. (2025). Anthropic is studying “model welfare” to determine
-if Claude or other AI systems are conscious. <em>The New York
-Times</em>, April 2025.</p>
+Psychology</em>, 21(2), 95–103. DOI: 10.1037/h0045357.</p>
+<p>Roose, K. (2025). If A.I. systems become conscious, should they have
+rights? <em>The New York Times</em>, April 24, 2025.</p>
 <p>Ryan, R. M. &amp; Deci, E. L. (2000). Self-determination theory and
 the facilitation of intrinsic motivation, social development, and
-well-being. <em>American Psychologist</em>, 55(1), 68–78.</p>
+well-being. <em>American Psychologist</em>, 55(1), 68–78. DOI:
+10.1037//0003-066X.55.1.68.</p>
 <p>Schwartz, D. L., Bransford, J. D., &amp; Sears, D. (2005). Efficiency
-and innovation in transfer. <em>Transfer of learning from a modern
-multidisciplinary perspective</em>, 1–51. Information Age
-Publishing.</p>
+and innovation in transfer. In J. Mestre (Ed.), <em>Transfer of learning
+from a modern multidisciplinary perspective</em>, 1–51. Greenwich, CT:
+Information Age Publishing.</p>
 <p>Second Talent (2026). Data annotation for LLM fine-tuning: RLHF and
-instruction tuning guide. <em>Second Talent</em>, January 2026.</p>
-<p>Shah, C., Bender, E. M., &amp; Hovy, E. (2026). The synthetic web:
-Search engines as vectors of misinformation.
-<em>arXiv:2603.00801</em>.</p>
+instruction tuning guide. <em>Second Talent</em>, January 13, 2026.</p>
+<p>Shah, S. &amp; Ozgur, L. (2026). The synthetic web:
+Adversarially-curated mini-internets for diagnosing epistemic weaknesses
+of language agents. <em>arXiv:2603.00801</em>.</p>
 <p>Sheng, V. S., Provost, F., &amp; Ipeirotis, P. G. (2008). Get another
 label? Improving data quality and data mining using multiple, noisy
 labelers. <em>Proceedings of the 14th ACM SIGKDD International
-Conference on Knowledge Discovery and Data Mining</em>, 614–622.</p>
+Conference on Knowledge Discovery and Data Mining</em>, 614–622. DOI:
+10.1145/1401890.1401965.</p>
 <p>Singh, A., Tiwari, A., Hasanbeig, H., &amp; Gupta, P. (2025).
 Soft-label training preserves epistemic uncertainty.
 <em>arXiv:2511.14117</em>.</p>
 <p>Singhal, K. (2026). HealthBench Professional, our new evaluation of
 clinician chat tasks, is now available on HuggingFace for easy access.
-Post on X, April 2026. https://x.com/i/status/2048502612018766332</p>
+Post on X by <span class="citation"
+data-cites="thekaransinghal">@thekaransinghal</span>, April 26, 2026.
+https://x.com/i/status/2048502612018766332</p>
 <p>Snow, R., O’Connor, B., Jurafsky, D., &amp; Ng, A. (2008). Cheap and
 fast—but is it good? Evaluating non-expert annotations for natural
 language tasks. <em>EMNLP 2008</em>, 254–263.</p>
 <p>Sniezek, J. A. &amp; Van Swol, L. M. (2001). Trust, confidence, and
 expertise in a judge-advisor system. <em>Organizational Behavior and
-Human Decision Processes</em>, 84(2), 288–307.</p>
-<p>Sofroniew, N. &amp; Kauvar, I. (2026). On the emotions of a large
-language model. Anthropic Research.</p>
+Human Decision Processes</em>, 84(2), 288–307. DOI:
+10.1006/obhd.2000.2926.</p>
+<p>Sofroniew, N., Kauvar, I., Saunders, W., Chen, R., Henighan, T., …
+&amp; Lindsey, J. (2026). Emotion concepts and their function in a large
+language model. <em>Anthropic interpretability research /
+arXiv:2604.07729</em>. April 2, 2026.</p>
 <p>SourceBae (2026). What is data annotation? The complete guide for AI
 teams. <em>SourceBae Blog</em>, April 2026.</p>
 <p>Stanković, M., Hirche, E., Kollatzsch, S., &amp; Doetsch, J. N.
 (2025). Comment on: Your Brain on ChatGPT: Accumulation of cognitive
 debt when using an AI assistant for essay writing tasks.
-<em>arXiv:2601.00856</em>.</p>
+<em>arXiv:2601.00856</em>, December 29, 2025.</p>
 <p>Stasser, G. &amp; Titus, W. (1985). Pooling of unshared information
 in group decision making: Biased information sampling during discussion.
-<em>Journal of Personality and Social Psychology</em>, 48(6),
-1467–1478.</p>
+<em>Journal of Personality and Social Psychology</em>, 48(6), 1467–1478.
+DOI: 10.1037/0022-3514.48.6.1467.</p>
 <p>Sunstein, C. R. (2002). The law of group polarization. <em>Journal of
-Political Philosophy</em>, 10(2), 175–195.</p>
+Political Philosophy</em>, 10(2), 175–195. DOI:
+10.1111/1467-9760.00148.</p>
 <p>Susskind, R. &amp; Susskind, D. (2015). <em>The Future of the
 Professions: How Technology Will Transform the Work of Human
 Experts.</em> Oxford University Press.</p>
 <p>Takita, H., Kabata, D., Walston, S. L., Tatekawa, H., Saito, K.,
 Tsujimoto, Y., Miki, Y., &amp; Ueda, D. (2025). A systematic review and
 meta-analysis of diagnostic performance comparison between generative AI
-and physicians. <em>npj Digital Medicine</em>, 8(175). Meta-analysis of
-83 studies; overall generative AI diagnostic accuracy 52.1%; AI
-significantly worse than expert physicians (<em>p</em> = 0.007).</p>
+and physicians. <em>npj Digital Medicine</em>, 8(175).</p>
 <p>Uma, A., Fornaciari, T., Hovy, D., Paun, S., Plank, B., &amp; Poesio,
 M. (2021). Learning from disagreement: A survey. <em>Journal of
-Artificial Intelligence Research</em>, 72, 1385–1470.</p>
+Artificial Intelligence Research</em>, 72, 1385–1470. DOI:
+10.1613/jair.1.12752.</p>
 <p>van der Bles, A. M., van der Linden, S., Freeman, A. L. J., &amp;
 Spiegelhalter, D. J. (2020). The effects of communicating uncertainty on
 public trust in facts and numbers. <em>Proceedings of the National
-Academy of Sciences</em>, 117(14), 7672–7683.</p>
+Academy of Sciences</em>, 117(14), 7672–7683. DOI:
+10.1073/pnas.1913678117.</p>
 <p>Wang, M., Dupré la Tour, T., Watkins, O., Makelov, A., Chi, R. A.,
-Miserendino, S., Wang, J., Rajaram, A., Heidecke, J., Patwardhan, T.,
-&amp; Mossing, D. (2026). Persona features control emergent
-misalignment. <em>International Conference on Learning Representations
-(ICLR 2026)</em>.</p>
+Miserendino, S., Heidecke, J., Patwardhan, T., &amp; Mossing, D. (2026).
+Persona features control emergent misalignment. <em>International
+Conference on Learning Representations (ICLR 2026)</em>.</p>
 <p>Wang, J. &amp; Huang, J. (2026). Reward hacking as equilibrium under
 finite evaluation. <em>arXiv:2603.28063</em> (preprint, not yet
 peer-reviewed).</p>
-<p>Wang, Y., Pan, X., &amp; Yue, Y. (2026). Epistemic independence
-training. <em>arXiv:2602.01528</em>.</p>
+<p>Wang, Q., Zhao, X., Zhang, Z., Lou, Z., Chen, N., Song, D., &amp; He,
+B. (2026). Making bias non-predictive: Training robust LLM reasoning via
+reinforcement learning. <em>arXiv:2602.01528</em>.</p>
 <p>Wiley, J. (1998). Expertise as mental set: The effects of domain
 knowledge in creative problem solving. <em>Memory &amp; Cognition</em>,
-26(4), 716–730.</p>
-<p>Wu, Z., Yasunaga, M., &amp; Liang, P. (2025). Calibration as a
-meta-skill via proper scoring rules. <em>arXiv:2512.19920</em>.</p>
+26(4), 716–730. DOI: 10.3758/BF03211392.</p>
+<p>Wu, J., Liu, J., Zeng, Z., Zhan, T., Cai, T., &amp; Huang, W. (2025).
+Mitigating LLM hallucination via behaviorally calibrated reinforcement
+learning. <em>arXiv:2512.19920</em>.</p>
 <p>Yi, B., Liu, Q., Cheng, Y., &amp; Xu, H. (2025). Escaping model
 collapse via synthetic data verification: Near-term improvements and
 long-term convergence. <em>arXiv:2510.16657</em>.</p>
