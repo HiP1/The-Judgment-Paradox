@@ -822,9 +822,13 @@ The problems described in §5 are not new observations. A growing body of work a
 
 The foundational position is now well-established. Aroyo and Welty (2015) argued that treating annotator disagreement as contamination to be eliminated is a methodological error. Disagreement, they proposed, is often a legitimate property of the data that annotation pipelines should preserve rather than suppress.
 
+Pavlick and Kwiatkowski (2019), at TACL, provided the empirical anchor. Analysing human disagreements on natural language inference, they demonstrated that the disagreements do not dismiss as annotation noise. The disagreements persist as more ratings are collected, and persist as more context is provided to raters. They argued for a refined evaluation objective requiring models to explicitly capture the full distribution of plausible human judgements rather than agreement with a collapsed label. Nie, Zhou, and Bansal (2020), at EMNLP, extended the empirical case with ChaosNLI: 100 annotations per example across 4,645 NLI items, totalling 464,500 annotations. The collective opinion distributions are reproducible, and majority-label evaluation systematically misses the structure of human opinion. ChaosNLI is also an existence proof for the small-but-meaningful evaluation pool: 100 annotators per item across thousands of items is a feasible scale for the targeted pilot studies §10 proposes.
+
 Uma et al. (2021), in a comprehensive JAIR survey titled "Learning from Disagreement," documented that disagreements are frequent in all areas of natural language processing and in all large-scale annotation projects. The survey established that the phenomenon is general, not confined to edge cases or poorly designed tasks.
 
 Plank (2022), at EMNLP, made the argument more pointed: the field has spent too long acting as though label certainty is the default state. Label variation is not an exception to be managed. It is the norm, and systems designed on the assumption of label certainty are brittle in proportion to how aggressively they enforce that assumption. Plank's term *human label variation* (HLV) is now standard in the field for the phenomenon.
+
+Röttger, Vidgen, Hovy, and Pierrehumbert (2022), at NAACL, distinguished two contrasting paradigms for handling annotator subjectivity in dataset design. The *descriptive* paradigm encourages annotator subjectivity to survey and model different beliefs. The *prescriptive* paradigm discourages annotator subjectivity to train models that consistently apply one belief. They argue that dataset creators should explicitly aim for one or the other to facilitate the intended use of their dataset, rather than producing partly-subjective datasets that fail to serve a clear downstream use. The Rich Annotation Object operates within the descriptive paradigm. The cross-review with three-valued voting and the explicit disagreement taxonomy are mechanisms for surveying and modelling the structure of legitimate divergence. They are not mechanisms for selecting one belief and applying it consistently. The framework's contested-domain scope (§1.2) is the regime in which descriptive annotation is methodologically appropriate.
 
 Cabitza, Campagner, and Basile (2023), at AAAI, developed the parallel framing of *data perspectivism*, which advocates methods that preserve divergence of opinions and integrate multiple perspectives in the ground-truthing process of ML development. The HLV framing and the perspectivist framing together name an active research program with dedicated workshops (NLPerspectives at LREC-COLING), shared tasks (LeWiDi 2023 and 2025; Leonardelli et al. 2023), and benchmarks. The pipeline operates within this tradition.
 
@@ -1524,9 +1528,11 @@ McCoy, L. G., Swamy, R., Sagar, N., Wang, M., Cao, J., Bacchi, S., Fong, N., Tan
 
 Nathan, M. J. & Petrosino, A. (2003). Expert blind spot among preservice teachers. *American Educational Research Journal*, 40(4), 905–928. DOI: 10.3102/00028312040004905.
 
-Nisbett, R. E., Fong, G. T., Lehman, D. R., & Cheng, P. W. (1987). Teaching reasoning. *Science*, 238(4827), 625–631. DOI: 10.1126/science.3672116.
-
 Ni, J., Fan, Y., Zouhar, V., Rooein, D., Hoyle, A., Sachan, M., Leippold, M., Hovy, D., & Ash, E. (2026). Can reasoning help large language models capture human annotator disagreement? *Proceedings of the 19th Conference of the European Chapter of the Association for Computational Linguistics (EACL 2026)*, Volume 1: Long Papers, 36–54.
+
+Nie, Y., Zhou, X., & Bansal, M. (2020). What can we learn from collective human opinions on natural language inference data? *Proceedings of the 2020 Conference on Empirical Methods in Natural Language Processing (EMNLP 2020)*, 9131–9143. DOI: 10.18653/v1/2020.emnlp-main.734.
+
+Nisbett, R. E., Fong, G. T., Lehman, D. R., & Cheng, P. W. (1987). Teaching reasoning. *Science*, 238(4827), 625–631. DOI: 10.1126/science.3672116.
 
 Nowak, S. & Rüger, S. (2010). How reliable are annotations via crowdsourcing? A study about inter-annotator agreement for multi-label image annotation. *Proceedings of the international conference on Multimedia information retrieval (MIR '10)*, 557–566. DOI: 10.1145/1743384.1743478.
 
@@ -1548,6 +1554,8 @@ Stokel-Walker, C. (2026). Scientists invented a fake disease. AI told people it 
 
 Ouyang, L., Wu, J., Jiang, X., Almeida, D., Wainwright, C. L., Mishkin, P., ... & Lowe, R. (2022). Training language models to follow instructions with human feedback. *NeurIPS 2022*.
 
+Pavlick, E. & Kwiatkowski, T. (2019). Inherent disagreements in human textual inferences. *Transactions of the Association for Computational Linguistics*, 7, 677–694. DOI: 10.1162/tacl_a_00293.
+
 Perdrix, Y., Pinsault, N., & Dionne, E. (2026). Script concordance test issues, the trail of expert calibration. *BMC Medical Education*, 26, 390. DOI: 10.1186/s12909-026-08732-8.
 
 Perrigo, B. (2023). Exclusive: OpenAI used Kenyan workers on less than $2 per hour to make ChatGPT less toxic. *TIME*, January 18, 2023.
@@ -1560,15 +1568,17 @@ Phan, I. (2026g). The Tunnel Pipeline: What Gets Lost, What It Costs, and the Ca
 
 Pier, E. L., Brauer, M., Filut, A., Kaatz, A., Raclaw, J., Nathan, M. J., Ford, C. E., & Carnes, M. (2018). Low agreement among reviewers evaluating the same NIH grant applications. *Proceedings of the National Academy of Sciences*, 115(12), 2952–2957. DOI: 10.1073/pnas.1714379115.
 
-Prade, T. & Samwald, M. (2026). Benchmarking Clinical Reasoning in Large Language Models: A Comparative Assessment Study. *medRxiv* preprint, 2026.03.13.26347597. DOI: 10.64898/2026.03.13.26347597. (Not yet peer-reviewed.)
+Plank, B. (2022). The "problem" of human label variation: On ground truth in data, modeling and evaluation. *Proceedings of the 2022 Conference on Empirical Methods in Natural Language Processing (EMNLP 2022)*, 10671–10682. DOI: 10.18653/v1/2022.emnlp-main.731.
 
-Plank, B. (2022). The "problem" of human label variation: On ground truth in data, modeling and evaluation. *EMNLP 2022*.
+Prade, T. & Samwald, M. (2026). Benchmarking Clinical Reasoning in Large Language Models: A Comparative Assessment Study. *medRxiv* preprint, 2026.03.13.26347597. DOI: 10.64898/2026.03.13.26347597. (Not yet peer-reviewed.)
 
 Price, P. C. & Stone, E. R. (2004). Intuitive evaluation of likelihood judgment producers: Evidence for a confidence heuristic. *Journal of Behavioral Decision Making*, 17(1), 39–57. DOI: 10.1002/bdm.460.
 
 Rogers, C. R. (1957). The necessary and sufficient conditions of therapeutic personality change. *Journal of Consulting Psychology*, 21(2), 95–103. DOI: 10.1037/h0045357.
 
 Roose, K. (2025). If A.I. systems become conscious, should they have rights? *The New York Times*, April 24, 2025.
+
+Röttger, P., Vidgen, B., Hovy, D., & Pierrehumbert, J. B. (2022). Two contrasting data annotation paradigms for subjective NLP tasks. *Proceedings of the 2022 Conference of the North American Chapter of the Association for Computational Linguistics: Human Language Technologies (NAACL-HLT 2022)*, 175–190. DOI: 10.18653/v1/2022.naacl-main.13.
 
 Ryan, R. M. & Deci, E. L. (2000). Self-determination theory and the facilitation of intrinsic motivation, social development, and well-being. *American Psychologist*, 55(1), 68–78. DOI: 10.1037//0003-066X.55.1.68.
 
